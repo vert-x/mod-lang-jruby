@@ -1,2 +1,1 @@
-mod-lang-jruby
-==============
+# Vert.x JRuby Ruby Language Implementation Module
