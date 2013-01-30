@@ -35,7 +35,7 @@ repositories {
 }
 
 dependencies {
-  compile "org.mozilla:rhino:$rhinoVersion"
+  compile "org.jruby:jruby:$jrubyVersion"
 
   provided "org.vert-x:vertx-core:$vertxVersion"
   provided "org.vert-x:vertx-platform:$vertxVersion"
