@@ -50,15 +50,20 @@ public class JRubyVerticleFactory implements VerticleFactory {
   public void init(VerticleManager mgr, ModuleClassLoader mcl) {
 	  this.mgr = mgr;
     this.mcl = mcl;
-    if (System.getProperty("jruby.home") == null) {
+    if (System.getenv("JRUBY_HOME") == null) {
       throw new IllegalStateException("In order to deploy Ruby applications you must set JRUBY_HOME to point " +
-          "at your JRuby installation");
+          "at your JRuby installation. This is so JRuby can find any required gems");
     }
-    this.scontainer = new ScriptingContainer(LocalContextScope.SINGLETHREAD);
-    scontainer.setCompatVersion(CompatVersion.RUBY1_9);
-    //scontainer.setClassLoader(mcl);
-    //Prevent JRuby from logging errors to stderr - we want to log ourselves
-    scontainer.setErrorWriter(new NullWriter());
+    ClassLoader old = Thread.currentThread().getContextClassLoader();
+    try {
+      Thread.currentThread().setContextClassLoader(mcl);
+      this.scontainer = new ScriptingContainer(LocalContextScope.SINGLETHREAD);
+      scontainer.setCompatVersion(CompatVersion.RUBY1_9);
+      //Prevent JRuby from logging errors to stderr - we want to log ourselves
+      scontainer.setErrorWriter(new NullWriter());
+    } finally {
+      Thread.currentThread().setContextClassLoader(old);
+    }
   }
 
   @Override

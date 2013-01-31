@@ -52,7 +52,7 @@ sourceSets {
   }
   test {
     resources {
-      srcDirs "src/test/javascript_scripts", "src/test/resources"
+      srcDirs "src/test/ruby_scripts", "src/test/resources"
     }
   }
 }
@@ -62,7 +62,6 @@ task copyMod( type:Copy, dependsOn: 'classes' ) {
   from 'build/classes/main'
   from 'src/main/conf'
   from 'src/main/api_shim'
-  from 'src/main/coffeescript'
   into( 'lib' ) {
     from configurations.compile
   }
@@ -83,24 +82,32 @@ task prepareVertxTest(type: Copy, dependsOn: 'copyMod' ) {
   into 'src/test/mod-test' // Copy the mod into the mods directory
 }
 
-test {
+task cleanTestMod(type: Delete) {
+  println "In clean test mod"
+  delete 'src/test/mod-test/$modulename-v$version'
+}
 
-  // Remove any classpath entries for the classes or resources of the rhino verticle and also remove the
-  // Rhino jar from the classpath
+test() {
+
+  // Remove any classpath entries for the classes or resources of the jruby verticle and also remove the
+  // jruby jar from the classpath
   // If we don't do this then the system classloader will load them which can cause issues with loading resources
   // from inside JS verticles
   classpath = files( classpath.findAll {
-    (!( it.toString() ==~ /.+build\/(classes|resources)\/main$/ )) && !(it.toString().contains("org.mozilla"))
+    (!( it.toString() ==~ /.+build\/(classes|resources)\/main$/ )) && !(it.toString().contains("org.jruby"))
   } )
 
-  outputs.upToDateWhen { false }
+//  classpath.each {
+//    println "entry ${it}"
+//  }
 
-  delete 'src/test/mod-test/vertx.lang*'
+  outputs.upToDateWhen { false }
 
   // Some vert.x properties
   systemProperty 'vertx.test.timeout', 15
   systemProperty 'vertx.mods', "$projectDir/src/test/mod-test"  // Set vertx.mods to the mod directory
   systemProperty 'vertx.version', "$project.version"
+  jvmArgs '-XX:+CMSClassUnloadingEnabled', '-XX:-UseGCOverheadLimit', '-XX:MaxPermSize=256m'
 
   // Show output
   testLogging.showStandardStreams = true
@@ -119,5 +126,21 @@ task collectDeps(type: Copy) {
   }
   into("test") {
     from configurations.testCompile
+  }
+}
+
+task yardoc(type:Exec) {
+  commandLine = [ "yardoc",
+      "--title", "Ruby API Doc",
+      "--no-private",
+      "--quiet",
+      "--markup-provider", "kramdown",
+      "--readme", "$rootDir/README.md",
+      "--output-dir","${project.buildDir}/docs/ruby/api",
+      "src/main/ruby/**/*.rb", "src/main/ruby_scripts/**/*.rb",
+      "-", "$rootDir/LICENSE.txt" ]
+
+  if( System.properties['os.name'].toLowerCase().contains('windows') ) {
+    commandLine = ['cmd', '/c'] + commandLine
   }
 }
