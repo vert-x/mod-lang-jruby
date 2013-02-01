@@ -77,14 +77,14 @@ task dist( type: Zip, dependsOn: 'copyMod' ) {
 }
 
 
-task prepareVertxTest(type: Copy, dependsOn: 'copyMod' ) {
+task prepareVertxTest(type: Copy, dependsOn: ['copyMod', 'deleteCopiedMod'] ) {
   from 'build/mod'
   into 'src/test/mod-test' // Copy the mod into the mods directory
 }
 
-task cleanTestMod(type: Delete) {
-  println "In clean test mod"
-  delete 'src/test/mod-test/$modulename-v$version'
+task deleteCopiedMod {
+  outputs.upToDateWhen { false }
+  delete "src/test/mod-test/$modulename-v$version"
 }
 
 test() {
