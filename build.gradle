@@ -59,7 +59,7 @@ sourceSets {
   }
   test {
     resources {
-      srcDirs "src/test/javascript_scripts", "src/test/resources"
+      srcDirs "src/test/ruby_scripts", "src/test/resources"
     }
   }
 }
