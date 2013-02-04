@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vertx.java.deploy.impl.jruby;
+package org.vertx.java.platform.impl;
 
 import org.jruby.*;
 import org.jruby.embed.EvalFailedException;
@@ -23,11 +23,11 @@ import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.exceptions.RaiseException;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.vertx.java.core.Vertx;
 import org.vertx.java.core.logging.Logger;
-import org.vertx.java.deploy.Verticle;
-import org.vertx.java.deploy.impl.ModuleClassLoader;
-import org.vertx.java.deploy.impl.VerticleFactory;
-import org.vertx.java.deploy.impl.VerticleManager;
+import org.vertx.java.platform.Container;
+import org.vertx.java.platform.Verticle;
+import org.vertx.java.platform.VerticleFactory;
 
 import java.io.*;
 import java.util.List;
@@ -38,25 +38,29 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class JRubyVerticleFactory implements VerticleFactory {
 
-  private VerticleManager mgr;
-  private ModuleClassLoader mcl;
+  private ClassLoader cl;
   private ScriptingContainer scontainer;
   private static final AtomicInteger seq = new AtomicInteger();
+
+  public static Vertx vertx;
+  public static Container container;
 
   public JRubyVerticleFactory() {
   }
 
   @Override
-  public void init(VerticleManager mgr, ModuleClassLoader mcl) {
-	  this.mgr = mgr;
-    this.mcl = mcl;
+  public void init(Vertx vertx, Container container, ClassLoader cl) {
+    this.cl = cl;
+    // These statics are used by the Rhino scripts to look up references to vertx and the container
+    JRubyVerticleFactory.vertx = vertx;
+    JRubyVerticleFactory.container = container;
     if (System.getenv("JRUBY_HOME") == null) {
       throw new IllegalStateException("In order to deploy Ruby applications you must set JRUBY_HOME to point " +
           "at your JRuby installation. This is so JRuby can find any required gems");
     }
     ClassLoader old = Thread.currentThread().getContextClassLoader();
     try {
-      Thread.currentThread().setContextClassLoader(mcl);
+      Thread.currentThread().setContextClassLoader(cl);
       this.scontainer = new ScriptingContainer(LocalContextScope.SINGLETHREAD);
       scontainer.setCompatVersion(CompatVersion.RUBY1_9);
       //Prevent JRuby from logging errors to stderr - we want to log ourselves
@@ -71,8 +75,7 @@ public class JRubyVerticleFactory implements VerticleFactory {
     return new JRubyVerticle(main);
   }
 
-  public void reportException(Throwable t) {
-    Logger logger = mgr.getLogger();
+  public void reportException(Logger logger, Throwable t) {
 
     RaiseException je = null;
     if (t instanceof EvalFailedException) {
@@ -156,7 +159,7 @@ public class JRubyVerticleFactory implements VerticleFactory {
     }
 
     public void start() throws Exception {
-      try (InputStream is = mcl.getResourceAsStream(scriptName)) {
+      try (InputStream is = cl.getResourceAsStream(scriptName)) {
         if (is == null) {
           throw new IllegalArgumentException("Cannot find verticle: " + scriptName);
         }

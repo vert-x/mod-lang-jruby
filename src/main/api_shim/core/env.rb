@@ -17,7 +17,7 @@ module Vertx
 
   # @return [Hash] Get the environment for the verticle
   def Vertx.env
-    org.vertx.java.deploy.impl.VertxLocator.container.getEnv
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.getEnv
   end
 
 end

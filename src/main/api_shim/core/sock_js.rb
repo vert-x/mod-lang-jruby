@@ -48,7 +48,7 @@ module Vertx
     # Create a new SockJSServer
     # @param http_server [HttpServer] You must pass in an instance of {HttpServer}
     def initialize(http_server)
-      @j_server = org.vertx.java.deploy.impl.VertxLocator.vertx.createSockJSServer(http_server._to_java_server)
+      @j_server = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createSockJSServer(http_server._to_java_server)
     end
 
     # Install an application

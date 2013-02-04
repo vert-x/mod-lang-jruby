@@ -17,7 +17,7 @@ module Vertx
 
   # @return [Logger] Get the logger for the verticle
   def Vertx.logger
-    org.vertx.java.deploy.impl.VertxLocator.container.getLogger
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.getLogger
   end
 
 end

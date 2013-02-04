@@ -14,7 +14,7 @@
 
 module Vertx
 
-  @@j_vertx = org.vertx.java.deploy.impl.VertxLocator.vertx()
+  @@j_vertx = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx()
 
   # Sets a one-shot timer that will fire after a certain delay.
   # This method will accept either a Proc or a block.

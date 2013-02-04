@@ -201,7 +201,7 @@ module Vertx
   # @author {http://tfox.org Tim Fox}
   class FileSystem
 
-    @@j_fs = org.vertx.java.deploy.impl.VertxLocator.vertx.fileSystem()
+    @@j_fs = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.fileSystem()
 
     # Copy a file, asynchronously. The copy will fail if from does not exist, or if to already exists.
     # @param [String] from Path of file to copy

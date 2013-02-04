@@ -25,7 +25,7 @@ module Vertx
       json_str = JSON.generate(config)
       config = org.vertx.java.core.json.JsonObject.new(json_str)
     end
-    org.vertx.java.deploy.impl.VertxLocator.container.deployVerticle(main, config, instances, block)
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.deployVerticle(main, config, instances, block)
   end
 
   # Deploy a worker verticle. The actual deploy happens asynchronously
@@ -38,7 +38,7 @@ module Vertx
       json_str = JSON.generate(config)
       config = org.vertx.java.core.json.JsonObject.new(json_str)
     end
-    org.vertx.java.deploy.impl.VertxLocator.container.deployWorkerVerticle(main, config, instances, block)
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.deployWorkerVerticle(main, config, instances, block)
   end
 
   # Deploy a module. The actual deploy happens asynchronously
@@ -51,31 +51,31 @@ module Vertx
       json_str = JSON.generate(config)
       config = org.vertx.java.core.json.JsonObject.new(json_str)
     end
-    org.vertx.java.deploy.impl.VertxLocator.container.deployModule(module_name, config, instances, block)
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.deployModule(module_name, config, instances, block)
   end
 
   # Undeploy a verticle
   # @param id [String] The unique id of the deployment
   def Vertx.undeploy_verticle(id, &block)
-    org.vertx.java.deploy.impl.VertxLocator.container.undeployVerticle(id, block)
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.undeployVerticle(id, block)
   end
 
   # Undeploy a module
   # @param id [String] The unique id of the deployment
   def Vertx.undeploy_module(id, &block)
-    org.vertx.java.deploy.impl.VertxLocator.container.undeployModule(id, block)
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.undeployModule(id, block)
   end
 
   # Cause the container to exit
   def Vertx.exit
-    org.vertx.java.deploy.impl.VertxLocator.container.exit
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.exit
   end
 
   # Get config for the verticle
   # @return [Hash] The JSON config for the verticle
   def Vertx.config
     if !defined? @@j_conf
-      @@j_conf = org.vertx.java.deploy.impl.VertxLocator.container.getConfig
+      @@j_conf = org.vertx.java.platform.impl.JRubyVerticleFactory.container.getConfig
       @@j_conf = JSON.parse(@@j_conf.encode) if @@j_conf
     end
     @@j_conf

@@ -27,7 +27,7 @@ module Vertx
 
     # Create a new HttpServer
     def initialize
-      @j_del = org.vertx.java.deploy.impl.VertxLocator.vertx.createHttpServer
+      @j_del = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createHttpServer
     end
 
     # Set the HTTP request handler for the server.
@@ -94,7 +94,7 @@ module Vertx
 
     # Create a new HttpClient
     def initialize
-      @j_del = org.vertx.java.deploy.impl.VertxLocator.vertx.createHttpClient
+      @j_del = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createHttpClient
     end
 
     # Set the exception handler.

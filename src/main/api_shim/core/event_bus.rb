@@ -55,7 +55,7 @@ module Vertx
 
     @@handler_map = {}
 
-    @@j_eventbus = org.vertx.java.deploy.impl.VertxLocator.vertx.eventBus()
+    @@j_eventbus = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.eventBus()
 
     # Send a message on the event bus
     # @param message [Hash] The message to send

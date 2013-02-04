@@ -1,6 +1,6 @@
 class TestUtils
   def initialize
-    @j_tu = org.vertx.java.testframework.TestUtils.new( org.vertx.java.deploy.impl.VertxLocator.vertx)
+    @j_tu = org.vertx.java.testframework.TestUtils.new( org.vertx.java.platform.impl.JRubyVerticleFactory.vertx)
   end
 
   def azzert(result, message = nil)
