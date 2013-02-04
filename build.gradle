@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+apply from: "gradle/maven.gradle"
+
+archivesBaseName = modulename
+group = groupname
+
 apply plugin: 'java'
 
 defaultTasks = ['assemble']
@@ -21,7 +26,9 @@ defaultTasks = ['assemble']
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 
-jar.enabled = false // We don't produce a jar
+// We don't produce a jar
+jar.enabled = false
+assert configurations.archives.artifacts.removeAll { it.file == jar.archivePath }
 
 configurations {
   provided
@@ -52,14 +59,14 @@ sourceSets {
   }
   test {
     resources {
-      srcDirs "src/test/ruby_scripts", "src/test/resources"
+      srcDirs "src/test/javascript_scripts", "src/test/resources"
     }
   }
 }
 
 task copyMod( type:Copy, dependsOn: 'classes' ) {
-  into "build/mod/$modulename-v$version"
-  from 'build/classes/main'
+  into "build/mod/$groupname.$modulename-v$version"
+  from compileJava
   from 'src/main/conf'
   from 'src/main/api_shim'
   into( 'lib' ) {
@@ -68,38 +75,35 @@ task copyMod( type:Copy, dependsOn: 'classes' ) {
 }
 
 // Package into build/libs/mod.zip
-task dist( type: Zip, dependsOn: 'copyMod' ) {
+task dist( type: Zip) {
   group = 'vert.x'
-  description = "Assembles a vert.x module in 'mod.zip' format"
+  description = "Assembles a vert.x module"
   destinationDir = project.file('build/libs')
-  archiveName = 'mod.zip'
-  from project.file("build/mod")
+  archiveName = "${modulename}-${version}" + ".zip"
+  //archiveName = "mod.zip"
+  from copyMod, {
+    into copyMod.destinationDir.name
+  }
 }
 
+artifacts {
+  archives dist
+}
 
-task prepareVertxTest(type: Copy, dependsOn: ['copyMod', 'deleteCopiedMod'] ) {
-  from 'build/mod'
+task prepareVertxTest(type: Sync, dependsOn: dist) {
+  from zipTree(dist.archivePath)
   into 'src/test/mod-test' // Copy the mod into the mods directory
 }
 
-task deleteCopiedMod {
-  outputs.upToDateWhen { false }
-  delete "src/test/mod-test/$modulename-v$version"
-}
+test {
+  dependsOn prepareVertxTest
 
-test() {
-
-  // Remove any classpath entries for the classes or resources of the jruby verticle and also remove the
-  // jruby jar from the classpath
+  // Remove any classpath entries for the classes or resources of the rhino verticle and also remove the
+  // Rhino jar from the classpath
   // If we don't do this then the system classloader will load them which can cause issues with loading resources
   // from inside JS verticles
-  classpath = files( classpath.findAll {
-    (!( it.toString() ==~ /.+build\/(classes|resources)\/main$/ )) && !(it.toString().contains("org.jruby"))
-  } )
-
-//  classpath.each {
-//    println "entry ${it}"
-//  }
+  classpath -= sourceSets.main.output
+  classpath -= configurations.compile
 
   outputs.upToDateWhen { false }
 
@@ -107,13 +111,11 @@ test() {
   systemProperty 'vertx.test.timeout', 15
   systemProperty 'vertx.mods', "$projectDir/src/test/mod-test"  // Set vertx.mods to the mod directory
   systemProperty 'vertx.version', "$project.version"
-  jvmArgs '-XX:+CMSClassUnloadingEnabled', '-XX:-UseGCOverheadLimit', '-XX:MaxPermSize=256m'
 
   // Show output
   testLogging.showStandardStreams = true
 
-  // No idea why we need to depend on testClasses...
-  dependsOn << [ 'testClasses', 'copyMod', 'prepareVertxTest' ]
+  testLogging { exceptionFormat "full" }
 }
 
 
@@ -126,21 +128,5 @@ task collectDeps(type: Copy) {
   }
   into("test") {
     from configurations.testCompile
-  }
-}
-
-task yardoc(type:Exec) {
-  commandLine = [ "yardoc",
-      "--title", "Ruby API Doc",
-      "--no-private",
-      "--quiet",
-      "--markup-provider", "kramdown",
-      "--readme", "$rootDir/README.md",
-      "--output-dir","${project.buildDir}/docs/ruby/api",
-      "src/main/ruby/**/*.rb", "src/main/ruby_scripts/**/*.rb",
-      "-", "$rootDir/LICENSE.txt" ]
-
-  if( System.properties['os.name'].toLowerCase().contains('windows') ) {
-    commandLine = ['cmd', '/c'] + commandLine
   }
 }
