@@ -130,3 +130,19 @@ task collectDeps(type: Copy) {
     from configurations.testCompile
   }
 }
+
+task yardoc(type:Exec) {
+  commandLine = [ "yardoc",
+      "--title", "Ruby API Doc",
+      "--no-private",
+      "--quiet",
+      "--markup-provider", "kramdown",
+      "--readme", "$rootDir/README.md",
+      "--output-dir","${project.buildDir}/docs/ruby/api",
+      "src/main/ruby/**/*.rb", "src/main/ruby_scripts/**/*.rb",
+      "-", "$rootDir/LICENSE.txt" ]
+
+  if( System.properties['os.name'].toLowerCase().contains('windows') ) {
+    commandLine = ['cmd', '/c'] + commandLine
+  }
+}
