@@ -42,7 +42,9 @@ repositories {
 }
 
 dependencies {
-  compile "org.jruby:jruby:$jrubyVersion"
+  // We need the jruby-complete.jar since this contains some standard .rb files such as delegate that are used
+  // by Vert.x
+  compile "org.jruby:jruby-complete:$jrubyVersion"
 
   provided "org.vert-x:vertx-core:$vertxVersion"
   provided "org.vert-x:vertx-platform:$vertxVersion"

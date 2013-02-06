@@ -54,10 +54,6 @@ public class JRubyVerticleFactory implements VerticleFactory {
     // These statics are used by the Rhino scripts to look up references to vertx and the container
     JRubyVerticleFactory.vertx = vertx;
     JRubyVerticleFactory.container = container;
-    if (System.getenv("JRUBY_HOME") == null) {
-      throw new IllegalStateException("In order to deploy Ruby applications you must set JRUBY_HOME to point " +
-          "at your JRuby installation. This is so JRuby can find any required gems");
-    }
     ClassLoader old = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(cl);
