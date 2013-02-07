@@ -38,12 +38,6 @@ def setup
   end
 end
 
-def teardown
-  FileSystem::delete_recursive(FILEDIR) do
-    yield
-  end
-end
-
 def test_copy
   filename = FILEDIR + "/test-file.txt"
   tofile = FILEDIR + "/to-file.txt"
@@ -157,10 +151,9 @@ end
 
 def vertx_stop
   @tu.check_context
-  teardown do
-    @tu.unregister_all
-    @tu.app_stopped
-  end
+  FileSystem::delete_recursive_sync(FILEDIR)
+  @tu.unregister_all
+  @tu.app_stopped
 end
 
 @tu.register_all(self)
