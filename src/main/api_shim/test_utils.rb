@@ -60,7 +60,7 @@ class TestUtils
     org.vertx.java.testframework.TestUtils.buffersEqual(buff1._to_java_buffer, buff2._to_java_buffer)
   end
 
-  def check_context
-    @j_tu.checkContext
+  def check_thread
+    @j_tu.checkThread
   end
 end

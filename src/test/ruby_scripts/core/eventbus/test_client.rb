@@ -17,7 +17,7 @@ include Vertx
 require "test_utils"
 
 @tu = TestUtils.new
-@tu.check_context
+@tu.check_thread
 
 def test_simple_send
 
@@ -165,7 +165,7 @@ def echo(msg)
   address = "some-address"
 
   id = EventBus.register_handler(address) { |received|
-    @tu.check_context
+    @tu.check_thread
     EventBus.unregister_handler(id)
     received.reply(received.body)
   }
@@ -204,7 +204,7 @@ def test_reply_of_reply_of_reply
 end
 
 def vertx_stop
-  @tu.check_context
+  @tu.check_thread
   @tu.unregister_all
   @tu.app_stopped
 end

@@ -16,8 +16,8 @@
 
 apply from: "gradle/maven.gradle"
 
-archivesBaseName = modulename
 group = groupname
+archivesBaseName = artifact
 
 apply plugin: 'java'
 
@@ -67,7 +67,7 @@ sourceSets {
 }
 
 task copyMod( type:Copy, dependsOn: 'classes' ) {
-  into "build/mod/$groupname.$modulename-v$version"
+  into "build/mod/maven:$groupname:$artifact:$version"
   from compileJava
   from 'src/main/conf'
   from 'src/main/api_shim'
@@ -81,8 +81,7 @@ task dist( type: Zip) {
   group = 'vert.x'
   description = "Assembles a vert.x module"
   destinationDir = project.file('build/libs')
-  archiveName = "${modulename}-${version}" + ".zip"
-  //archiveName = "mod.zip"
+  archiveName = "${artifact}-${version}" + ".zip"
   from copyMod, {
     into copyMod.destinationDir.name
   }
@@ -92,8 +91,18 @@ artifacts {
   archives dist
 }
 
-task prepareVertxTest(type: Sync, dependsOn: dist) {
-  from zipTree(dist.archivePath)
+task cleanTestTmpModules(type: Delete) {
+  delete { file("src/test/mod-test").listFiles().find {
+    true
+  } }
+}
+
+clean {
+  dependsOn cleanTestTmpModules
+}
+
+task prepareVertxTest(type: Copy, dependsOn: [cleanTestTmpModules, copyMod]) {
+  from 'build/mod'
   into 'src/test/mod-test' // Copy the mod into the mods directory
 }
 

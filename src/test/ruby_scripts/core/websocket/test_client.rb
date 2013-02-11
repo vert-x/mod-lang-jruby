@@ -17,7 +17,7 @@ include Vertx
 require "test_utils"
 
 @tu = TestUtils.new
-@tu.check_context
+@tu.check_thread
 @server = HttpServer.new
 @client = HttpClient.new
 @client.port = 8080
@@ -34,10 +34,10 @@ def echo(binary)
 
   @server.websocket_handler do |ws|
 
-    @tu.check_context
+    @tu.check_thread
 
     ws.data_handler do |buff|
-      @tu.check_context
+      @tu.check_thread
       ws.write_buffer(buff)
     end
 
@@ -53,12 +53,12 @@ def echo(binary)
   end
 
   @client.connect_web_socket("/someurl") do |ws|
-    @tu.check_context
+    @tu.check_thread
 
     received = Buffer.create()
 
     ws.data_handler do |buff|
-      @tu.check_context
+      @tu.check_thread
       received.append_buffer(buff)
       if received.length == buff.length
         @tu.azzert(TestUtils.buffers_equal(buff, received))
@@ -78,16 +78,16 @@ end
 def test_write_from_connect_handler
 
   @server.websocket_handler do |ws|
-    @tu.check_context
+    @tu.check_thread
     ws.write_text_frame("foo")
   end
 
   @server.listen(8080)
 
   @client.connect_web_socket("/someurl") do |ws|
-    @tu.check_context
+    @tu.check_thread
     ws.data_handler do |buff|
-      @tu.check_context
+      @tu.check_thread
       @tu.azzert("foo" == buff.to_s)
       @tu.test_complete
     end
@@ -98,7 +98,7 @@ end
 def test_close
 
   @server.websocket_handler do |ws|
-    @tu.check_context
+    @tu.check_thread
     ws.data_handler do |buff|
       ws.close
     end
@@ -107,7 +107,7 @@ def test_close
   @server.listen(8080)
 
   @client.connect_web_socket("/someurl") do |ws|
-    @tu.check_context
+    @tu.check_thread
     ws.closed_handler do
       @tu.test_complete
     end
@@ -119,14 +119,14 @@ end
 def test_close_from_connect
 
   @server.websocket_handler do |ws|
-    @tu.check_context
+    @tu.check_thread
     ws.close
   end
 
   @server.listen(8080)
 
   @client.connect_web_socket("/someurl") do |ws|
-    @tu.check_context
+    @tu.check_thread
     ws.closed_handler do
       @tu.test_complete
     end
@@ -135,7 +135,7 @@ def test_close_from_connect
 end
 
 def vertx_stop
-  @tu.check_context
+  @tu.check_thread
   @tu.unregister_all
   @client.close
   @server.close do

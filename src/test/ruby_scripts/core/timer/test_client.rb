@@ -17,11 +17,11 @@ include Vertx
 require "test_utils"
 
 @tu = TestUtils.new
-@tu.check_context
+@tu.check_thread
 
 def test_one_off
   Vertx::set_timer(10) { |timer_id|
-    @tu.check_context
+    @tu.check_thread
     @tu.test_complete
   }
 end
@@ -32,7 +32,7 @@ def test_periodic
 
   count = 0
   Vertx::set_periodic(10) { |timer_id|
-    @tu.check_context
+    @tu.check_thread
     count += 1
     if count == fires
       Vertx::cancel_timer(timer_id)
@@ -48,7 +48,7 @@ def test_periodic
 end
 
 def vertx_stop
-  @tu.check_context
+  @tu.check_thread
   @tu.unregister_all
   @tu.app_stopped
 end

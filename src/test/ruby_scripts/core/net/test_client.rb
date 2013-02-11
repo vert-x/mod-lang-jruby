@@ -18,20 +18,20 @@ require "test_utils"
 
 @tu = TestUtils.new
 
-@tu.check_context
+@tu.check_thread
 
 def test_echo
 
   @server = NetServer.new.connect_handler { |socket|
-    @tu.check_context
+    @tu.check_thread
     socket.data_handler { |data|
-      @tu.check_context
+      @tu.check_thread
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080)
 
   @client = NetClient.new.connect(8080, "localhost") { |socket|
-    @tu.check_context
+    @tu.check_thread
     sends = 10
     size = 100
 
@@ -39,7 +39,7 @@ def test_echo
     received = Buffer.create()
 
     socket.data_handler { |data|
-      @tu.check_context
+      @tu.check_thread
       received.append_buffer(data)
 
       if received.length == sends * size
@@ -49,12 +49,12 @@ def test_echo
     }
 
     socket.drain_handler {
-      @tu.check_context
+      @tu.check_thread
       #puts "drained\n"
     }
 
     socket.end_handler {
-      @tu.check_context
+      @tu.check_thread
       #puts "end\n"
     }
 
@@ -85,9 +85,9 @@ def test_echo_ssl
   @server.client_auth_required = true
 
   @server.connect_handler { |socket|
-    @tu.check_context
+    @tu.check_thread
     socket.data_handler { |data|
-      @tu.check_context
+      @tu.check_thread
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080)
@@ -100,7 +100,7 @@ def test_echo_ssl
   @client.trust_store_password = 'wibble'
 
   @client.connect(8080, "localhost") { |socket|
-    @tu.check_context
+    @tu.check_thread
     sends = 10
     size = 100
 
@@ -108,7 +108,7 @@ def test_echo_ssl
     received = Buffer.create()
 
     socket.data_handler { |data|
-      @tu.check_context
+      @tu.check_thread
       received.append_buffer(data)
 
       if received.length == sends * size
@@ -122,17 +122,17 @@ def test_echo_ssl
     #Just call the methods. Real testing is done in java tests
 
     socket.drain_handler {
-      @tu.check_context
+      @tu.check_thread
       #puts "drained\n"
     }
 
     socket.end_handler {
-      @tu.check_context
+      @tu.check_thread
       #puts "end\n"
     }
 
     socket.closed_handler {
-      @tu.check_context
+      @tu.check_thread
       #puts "closed\n"
     }
 
@@ -152,20 +152,20 @@ end
 def test_write_str
 
   @server = NetServer.new.connect_handler { |socket|
-    @tu.check_context
+    @tu.check_thread
     socket.data_handler { |data|
-      @tu.check_context
+      @tu.check_thread
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080)
 
   @client = NetClient.new.connect(8080, "localhost") { |socket|
-    @tu.check_context
+    @tu.check_thread
     sent = 'some-string'
     received = Buffer.create()
 
     socket.data_handler { |data|
-      @tu.check_context
+      @tu.check_thread
       received.append_buffer(data)
 
       if received.length == sent.length

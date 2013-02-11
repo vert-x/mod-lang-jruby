@@ -17,7 +17,7 @@ include Vertx
 require "test_utils"
 
 @tu = TestUtils.new
-@tu.check_context
+@tu.check_thread
 @server = HttpServer.new
 @client = HttpClient.new
 @client.port = 8080
@@ -190,7 +190,7 @@ def http_method(ssl, method, chunked)
   uri = "http://localhost:8080" + path + "?" + query;
 
   @server.request_handler do |req|
-    @tu.check_context
+    @tu.check_thread
     @tu.azzert(req.uri == uri)
     @tu.azzert(req.method == method)
     @tu.azzert(req.path == path)
@@ -203,12 +203,12 @@ def http_method(ssl, method, chunked)
     req.response.put_header('rheader2', 'vrheader2')
     body = Buffer.create()
     req.data_handler do |data|
-      @tu.check_context
+      @tu.check_thread
       body.append_buffer(data)
     end
     req.response.chunked = chunked
     req.end_handler do
-      @tu.check_context
+      @tu.check_thread
       if method != 'HEAD' && method != 'CONNECT'
         req.response.put_header('Content-Length', body.length()) if !chunked
         req.response.write_buffer(body)
@@ -233,19 +233,19 @@ def http_method(ssl, method, chunked)
   sent_buff = TestUtils.gen_buffer(1000)
 
   request = @client.request(method, uri) do |resp|
-    @tu.check_context
+    @tu.check_thread
     @tu.azzert(200 == resp.status_code)
 
     @tu.azzert('vrheader1' == resp.headers['rheader1'])
     @tu.azzert('vrheader2' == resp.headers['rheader2'])
     body = Buffer.create()
     resp.data_handler do |data|
-      @tu.check_context
+      @tu.check_thread
       body.append_buffer(data)
     end
 
     resp.end_handler do
-      @tu.check_context
+      @tu.check_thread
       if method != 'HEAD' && method != 'CONNECT'
         @tu.azzert(TestUtils.buffers_equal(sent_buff, body))
         if chunked
@@ -268,7 +268,7 @@ def http_method(ssl, method, chunked)
 end
 
 def vertx_stop
-  @tu.check_context
+  @tu.check_thread
   @tu.unregister_all
   @client.close
   @server.close do
