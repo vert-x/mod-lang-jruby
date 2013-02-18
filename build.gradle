@@ -82,9 +82,7 @@ task dist( type: Zip) {
   description = "Assembles a vert.x module"
   destinationDir = project.file('build/libs')
   archiveName = "${artifact}-${version}" + ".zip"
-  from copyMod, {
-    into copyMod.destinationDir.name
-  }
+  from copyMod
 }
 
 artifacts {
