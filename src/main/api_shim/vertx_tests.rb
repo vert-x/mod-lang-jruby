@@ -1,4 +1,4 @@
-VertxAssert = Java::IoVertxTesttools::VertxAssert
+VertxAssert = Java::OrgVertxTesttools::VertxAssert
 
 def init_tests(top)
   VertxAssert.initialize(org.vertx.java.platform.impl.JRubyVerticleFactory.vertx)
