@@ -72,7 +72,6 @@ public class JRubyVerticleFactory implements VerticleFactory {
   }
 
   public void reportException(Logger logger, Throwable t) {
-
     RaiseException je = null;
     if (t instanceof EvalFailedException) {
       EvalFailedException e = (EvalFailedException)t;
@@ -107,9 +106,6 @@ public class JRubyVerticleFactory implements VerticleFactory {
           }
         }
       }
-
-      logger.error("backtrace is " + backtrace);
-
       logger.error("Exception in Ruby verticle: " + msg +
         "\n" + backtrace);
     } else {
@@ -172,7 +168,12 @@ public class JRubyVerticleFactory implements VerticleFactory {
         }
         br.close();
         svert.append(";end;").append(modName);
-        wrappingModule = (RubyModule)scontainer.runScriptlet(svert.toString());
+        // We have to convert it back to an inputstream since for some reason there is no version
+        // container.runScriptlet which takes a String AND a fileName - and without the filename
+        // any stack traces from errors won't show the filename and be hard for the user to parse.
+        try (InputStream sis = new ByteArrayInputStream(svert.toString().getBytes("UTF-8"))) {
+          wrappingModule = (RubyModule)scontainer.runScriptlet(sis, scriptName);
+        }
       }
     }
 
