@@ -72,7 +72,7 @@ sourceSets {
 }
 
 task copyMod( type:Copy, dependsOn: 'classes' ) {
-  into "build/mod/$modowner#$modname#$version"
+  into "build/mod/$modowner~$modname~$version"
   from compileJava
   from 'src/main/conf'
   from 'src/main/api_shim'
