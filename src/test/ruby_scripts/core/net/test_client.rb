@@ -192,7 +192,7 @@ def test_methods
   @server.receive_buffer_size=218123
   @server.tcp_keep_alive=true
   @server.reuse_address=true
-  @server.so_linger = true
+  @server.so_linger = 1
   @server.traffic_class=123
 
   @server.connect_handler { |sock|}
@@ -211,7 +211,7 @@ def test_methods
   @client.receive_buffer_size=218123
   @client.tcp_keep_alive=true
   @client.reuse_address=true
-  @client.so_linger = true
+  @client.so_linger = 1
   @client.traffic_class=123
 
   @client.close
