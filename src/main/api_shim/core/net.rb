@@ -58,9 +58,20 @@ module Vertx
     # Instruct the server to listen for incoming connections.
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
+    # @param [Proc] proc A proc to be used as the handler
     # @return [NetServer] A reference to self so invocations can be chained
-    def listen(port, host = "0.0.0.0")
-      @j_del.listen(port, host)
+    def listen(port, host = "0.0.0.0", proc = nil, &hndlr)
+      hndlr = proc if proc
+      @j_del.listen(port, host, hndlr)
+      self
+    end
+
+    # Set the exception handler.
+    # @param [Proc] proc A proc to be used as the handler
+    # @param [Block] hndlr A block to be used as the handler
+    def exception_handler(proc = nil, &hndlr)
+      hndlr = proc if proc
+      @j_del.exceptionHandler(hndlr)
       self
     end
 
@@ -106,6 +117,14 @@ module Vertx
       hndlr = proc if proc
       @j_del.connect(port, host) { |j_socket| hndlr.call(NetSocket.new(j_socket)) }
       self
+    end
+
+    # Set the exception handler.
+    # @param [Proc] proc A proc to be used as the handler
+    # @param [Block] hndlr A block to be used as the handler
+    def exception_handler(proc = nil, &hndlr)
+      hndlr = proc if proc
+      @j_del.exceptionHandler(hndlr)
     end
 
     # Close the NetClient. Any open connections will be closed.
