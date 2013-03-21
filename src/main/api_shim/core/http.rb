@@ -66,11 +66,9 @@ module Vertx
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
     # @param [Proc] proc A proc to be used as the handler
-    # @return [NetServer] A reference to self so invocations can be chained
     def listen(port, host = "0.0.0.0", proc = nil, &hndlr)
       hndlr = proc if proc
       @j_del.listen(port, host, hndlr)
-      self
     end
 
     # Client authentication is an extra level of security in SSL, and requires clients to provide client certificates.
