@@ -220,51 +220,51 @@ def http_method(ssl, method, chunked)
       req.response.end
     end
   end
-  @server.listen(8080)
-
-  if ssl
-    @client.ssl = true
-    @client.key_store_path = './src/test/keystores/client-keystore.jks'
-    @client.key_store_password = 'wibble'
-    @client.trust_store_path = './src/test/keystores/client-truststore.jks'
-    @client.trust_store_password = 'wibble'
-  end
-
-  sent_buff = TestUtils.gen_buffer(1000)
-
-  request = @client.request(method, uri) do |resp|
-    @tu.check_thread
-    @tu.azzert(200 == resp.status_code)
-
-    @tu.azzert('vrheader1' == resp.headers['rheader1'])
-    @tu.azzert('vrheader2' == resp.headers['rheader2'])
-    body = Buffer.create()
-    resp.data_handler do |data|
-      @tu.check_thread
-      body.append_buffer(data)
+  @server.listen(8080) do
+    if ssl
+      @client.ssl = true
+      @client.key_store_path = './src/test/keystores/client-keystore.jks'
+      @client.key_store_password = 'wibble'
+      @client.trust_store_path = './src/test/keystores/client-truststore.jks'
+      @client.trust_store_password = 'wibble'
     end
 
-    resp.end_handler do
+    sent_buff = TestUtils.gen_buffer(1000)
+
+    request = @client.request(method, uri) do |resp|
       @tu.check_thread
-      if method != 'HEAD' && method != 'CONNECT'
-        @tu.azzert(TestUtils.buffers_equal(sent_buff, body))
-        if chunked
-          @tu.azzert('vtrailer1' == resp.trailers['trailer1'])
-          @tu.azzert('vtrailer2' == resp.trailers['trailer2'])
-        end
+      @tu.azzert(200 == resp.status_code)
+
+      @tu.azzert('vrheader1' == resp.headers['rheader1'])
+      @tu.azzert('vrheader2' == resp.headers['rheader2'])
+      body = Buffer.create()
+      resp.data_handler do |data|
+        @tu.check_thread
+        body.append_buffer(data)
       end
-      @tu.test_complete
+
+      resp.end_handler do
+        @tu.check_thread
+        if method != 'HEAD' && method != 'CONNECT'
+          @tu.azzert(TestUtils.buffers_equal(sent_buff, body))
+          if chunked
+            @tu.azzert('vtrailer1' == resp.trailers['trailer1'])
+            @tu.azzert('vtrailer2' == resp.trailers['trailer2'])
+          end
+        end
+        @tu.test_complete
+      end
     end
+
+    request.chunked = chunked;
+    request.put_header('header1', 'vheader1')
+    request.put_header('header2', 'vheader2')
+    request.put_header('Content-Length', sent_buff.length()) if !chunked
+
+    request.write_buffer(sent_buff)
+
+    request.end
   end
-
-  request.chunked = chunked;
-  request.put_header('header1', 'vheader1')
-  request.put_header('header2', 'vheader2')
-  request.put_header('Content-Length', sent_buff.length()) if !chunked
-
-  request.write_buffer(sent_buff)
-
-  request.end
 end
 
 def vertx_stop

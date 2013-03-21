@@ -43,33 +43,33 @@ def echo(binary)
 
   end
 
-  @server.listen(8080)
-
-  if binary
-    buff = TestUtils.gen_buffer(1000)
-  else
-    str = TestUtils.random_unicode_string(1000)
-    buff = Buffer.create(str)
-  end
-
-  @client.connect_web_socket("/someurl") do |ws|
-    @tu.check_thread
-
-    received = Buffer.create()
-
-    ws.data_handler do |buff|
-      @tu.check_thread
-      received.append_buffer(buff)
-      if received.length == buff.length
-        @tu.azzert(TestUtils.buffers_equal(buff, received))
-        @tu.test_complete
-      end
+  @server.listen(8080) do
+    if binary
+      buff = TestUtils.gen_buffer(1000)
+    else
+      str = TestUtils.random_unicode_string(1000)
+      buff = Buffer.create(str)
     end
 
-    if binary
-      ws.write_binary_frame(buff)
-    else
-      ws.write_text_frame(str)
+    @client.connect_web_socket("/someurl") do |ws|
+      @tu.check_thread
+
+      received = Buffer.create()
+
+      ws.data_handler do |buff|
+        @tu.check_thread
+        received.append_buffer(buff)
+        if received.length == buff.length
+          @tu.azzert(TestUtils.buffers_equal(buff, received))
+          @tu.test_complete
+        end
+      end
+
+      if binary
+        ws.write_binary_frame(buff)
+      else
+        ws.write_text_frame(str)
+      end
     end
   end
 
@@ -82,16 +82,17 @@ def test_write_from_connect_handler
     ws.write_text_frame("foo")
   end
 
-  @server.listen(8080)
-
-  @client.connect_web_socket("/someurl") do |ws|
-    @tu.check_thread
-    ws.data_handler do |buff|
+  @server.listen(8080) do
+    @client.connect_web_socket("/someurl") do |ws|
       @tu.check_thread
-      @tu.azzert("foo" == buff.to_s)
-      @tu.test_complete
+      ws.data_handler do |buff|
+        @tu.check_thread
+        @tu.azzert("foo" == buff.to_s)
+        @tu.test_complete
+      end
     end
   end
+
 
 end
 
@@ -123,15 +124,14 @@ def test_close_from_connect
     ws.close
   end
 
-  @server.listen(8080)
-
-  @client.connect_web_socket("/someurl") do |ws|
-    @tu.check_thread
-    ws.closed_handler do
-      @tu.test_complete
+  @server.listen(8080) do
+    @client.connect_web_socket("/someurl") do |ws|
+      @tu.check_thread
+      ws.closed_handler do
+        @tu.test_complete
+      end
     end
   end
-
 end
 
 def vertx_stop
