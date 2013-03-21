@@ -56,9 +56,10 @@ module Vertx
     # Instruct the server to listen for incoming connections.
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
-    def listen(port, host = "0.0.0.0")
-      @j_del.listen(port, host)
-      self
+    # @param [Proc] proc A proc to be used as the handler
+    def listen(port, host = "0.0.0.0", proc = nil, &hndlr)
+      hndlr = proc if proc
+      @j_del.listen(port, host, hndlr)
     end
 
     # Client authentication is an extra level of security in SSL, and requires clients to provide client certificates.
