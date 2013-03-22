@@ -25,7 +25,7 @@ end
 
 # Globals should not be visible between different verticle types
 def test_isolated_global1
-  @tu.azzert($test_global === "foo")
+  @tu.azzert($test_global === 1)
   @tu.test_complete
 end
 
