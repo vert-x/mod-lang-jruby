@@ -19,17 +19,19 @@ require "test_utils"
 @tu = TestUtils.new
 
 @tu.check_thread
+@server = NetServer.new
+@client = NetClient.new
 
 def test_echo
 
-  @server = NetServer.new.connect_handler { |socket|
+  @server.connect_handler { |socket|
     @tu.check_thread
     socket.data_handler { |data|
       @tu.check_thread
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080, "0.0.0.0") {
-    @client = NetClient.new.connect(8080, "localhost") { |socket|
+    @client.connect(8080, "localhost") { |socket|
       @tu.check_thread
       sends = 10
       size = 100
@@ -75,8 +77,6 @@ end
 def test_echo_ssl
 
   # Let's do full SSL with client auth
-
-  @server = NetServer.new
   @server.ssl = true
   @server.key_store_path = './src/test/keystores/server-keystore.jks'
   @server.key_store_password = 'wibble'
@@ -91,7 +91,6 @@ def test_echo_ssl
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080, "0.0.0.0") {
-    @client = NetClient.new
     @client.ssl = true
     @client.key_store_path = './src/test/keystores/client-keystore.jks'
     @client.key_store_password = 'wibble'
@@ -151,14 +150,14 @@ end
 
 def test_write_str
 
-  @server = NetServer.new.connect_handler { |socket|
+  @server.connect_handler { |socket|
     @tu.check_thread
     socket.data_handler { |data|
       @tu.check_thread
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080, "localhost") {
-    @client = NetClient.new.connect(8080, "localhost") { |socket|
+    @client.connect(8080, "localhost") { |socket|
       @tu.check_thread
       sent = 'some-string'
       received = Buffer.create()
@@ -183,7 +182,6 @@ end
 
 # Basically we just need to touch all methods, the real testing occurs in the Java tests
 def test_methods
-  @server = NetServer.new
 
   @server.ssl=true
   @server.key_store_path="foo.jks"
@@ -201,7 +199,6 @@ def test_methods
 
   @server.close
 
-  @client = NetClient.new
 
   @client.ssl=true
   @client.key_store_path="foo.jks"
