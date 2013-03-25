@@ -41,7 +41,6 @@ public class RubyIsolationTest extends TestBase {
     startTest("test_isolated_global_init1_1");
     startTest("test_isolated_global_init1_2");
     startTest("test_isolated_global1");
-    waitTestComplete();
   }
 
   @Test
