@@ -21,7 +21,6 @@ require "test_utils"
 @server = HttpServer.new
 @rm = RouteMatcher.new
 @server.request_handler(@rm)
-@server.listen(8080)
 
 @client = HttpClient.new
 @client.port = 8080;
@@ -112,10 +111,12 @@ def test_all_with_regex
 end
 
 def test_route_no_match
-  @client.get('some-uri') do |resp|
-    @tu.azzert(404 == resp.status_code)
-    @tu.test_complete
-  end.end
+  @server.listen(8080, "0.0.0.0") do
+    @client.get('some-uri') do |resp|
+      @tu.azzert(404 == resp.status_code)
+      @tu.test_complete
+    end.end
+  end
 end
 
 
@@ -137,11 +138,12 @@ def route(method, regex, pattern, params, uri)
 
   method = 'get' if method == 'all'
 
-  @client.send(method, uri) do |resp|
-    @tu.azzert(200 == resp.status_code)
-    @tu.test_complete
-  end.end
-
+  @server.listen(8080, "0.0.0.0") do
+    @client.send(method, uri) do |resp|
+      @tu.azzert(200 == resp.status_code)
+      @tu.test_complete
+    end.end
+  end
 end
 
 def vertx_stop
