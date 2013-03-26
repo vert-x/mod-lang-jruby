@@ -105,14 +105,14 @@ def test_close
     end
   end
 
-  @server.listen(8080)
-
-  @client.connect_web_socket("/someurl") do |ws|
-    @tu.check_thread
-    ws.closed_handler do
-      @tu.test_complete
+  @server.listen(8080) do
+    @client.connect_web_socket("/someurl") do |ws|
+      @tu.check_thread
+      ws.closed_handler do
+        @tu.test_complete
+      end
+      ws.write_text_frame("foo");
     end
-    ws.write_text_frame("foo");
   end
 
 end
