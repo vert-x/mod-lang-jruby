@@ -29,11 +29,6 @@ def test_isolated_global1
   @tu.test_complete
 end
 
-def test_isolated_global_init1_2
-  $test_global = 1
-  @tu.test_complete
-end
-
 @called = false
 
 def test_isolated_global_init2_1

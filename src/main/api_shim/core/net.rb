@@ -117,6 +117,14 @@ module Vertx
       self
     end
 
+    # Set the exception handler.
+    # @param [Proc] proc A proc to be used as the handler
+    # @param [Block] hndlr A block to be used as the handler
+    def exception_handler(proc = nil, &hndlr)
+      hndlr = proc if proc
+      @j_del.exceptionHandler(hndlr)
+    end
+
     # Close the NetClient. Any open connections will be closed.
     def close
       @j_del.close

@@ -53,6 +53,15 @@ module Vertx
       self
     end
 
+    # Set the exception handler.
+    # @param [Proc] proc A proc to be used as the handler
+    # @param [Block] hndlr A block to be used as the handler
+    def exception_handler(proc = nil, &hndlr)
+      hndlr = proc if proc
+      @j_del.exceptionHandler(hndlr)
+      self
+    end
+
     # Instruct the server to listen for incoming connections.
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
