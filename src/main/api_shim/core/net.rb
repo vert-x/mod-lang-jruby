@@ -15,6 +15,7 @@
 require 'core/streams'
 require 'core/ssl_support'
 require 'core/tcp_support'
+require 'core/wrapped_handler'
 
 module Vertx
 
@@ -27,30 +28,19 @@ module Vertx
   # @author {http://tfox.org Tim Fox}
   class NetServer
 
-    include SSLSupport, TCPSupport
+    include SSLSupport, ServerSSLSupport, TCPSupport, ServerTCPSupport
 
     # Create a new NetServer
     def initialize
       @j_del = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createNetServer
     end
 
-    # Client authentication is an extra level of security in SSL, and requires clients to provide client certificates.
-    # Those certificates must be added to the server trust store.
-    # @param [Boolean] val. If true then the server will request client authentication from any connecting clients, if they
-    # do not authenticate then they will not make a connection.
-    def client_auth_required=(val)
-      @j_del.setClientAuthRequired(val)
-      self
-    end
-
     # Supply a connect handler for this server. The server can only have at most one connect handler at any one time.
     # As the server accepts TCP or SSL connections it creates an instance of {NetSocket} and passes it to the
     # connect handler.
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
     # @return [NetServer] A reference to self so invocations can be chained
-    def connect_handler(proc = nil, &hndlr)
-      hndlr = proc if proc
+    def connect_handler(&hndlr)
       @j_del.connectHandler{ |j_socket| hndlr.call(NetSocket.new(j_socket)) }
       self
     end
@@ -66,7 +56,17 @@ module Vertx
 
     # Close the server. The handler will be called when the close is complete.
     def close(&hndlr)
-      @j_del.close(hndlr)
+      @j_del.close(ARWrappedHandler.new(hndlr))
+    end
+
+    # Get the port
+    def port
+      @j_del.port
+    end
+
+    # Get the host
+    def host
+      @j_del.host
     end
 
   end
@@ -78,34 +78,71 @@ module Vertx
   # @author {http://tfox.org Tim Fox}
   class NetClient
 
-    include SSLSupport, TCPSupport
+    include SSLSupport, ClientSSLSupport, TCPSupport
 
     # Create a new NetClient
     def initialize
       @j_del = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createNetClient
     end
 
-    # Should the client trust ALL server certificates?
-    # @param [Boolean] val. If val is set to true then the client will trust ALL server certificates and will not attempt to authenticate them
-    # against it's local client trust store. The default value is false.
-    # Use this method with caution!
-    # @return [NetClient] A reference to self so invocations can be chained
-    def trust_all=(val)
-      @j_del.setTrustAll(val)
-      self
-    end
-
     # Attempt to open a connection to a server. The connection is opened asynchronously and the result returned in the
     # handler.
     # @param [FixNum] port. The port to connect to.
     # @param [String] host. The host or ip address to connect to.
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
     # @return [NetClient] A reference to self so invocations can be chained
-    def connect(port, host = "localhost", proc = nil, &hndlr)
-      hndlr = proc if proc
-      @j_del.connect(port, host) { |j_socket| hndlr.call(NetSocket.new(j_socket)) }
+    def connect(port, host = "localhost", &hndlr)
+      hndlr = ARWrappedHandler.new(hndlr) { |j_socket| NetSocket.new(j_socket) }
+      @j_del.connect(port, host, hndlr)
       self
+    end
+
+    # Set the reconnect attempts
+    def reconnect_attempts=(val)
+      @j_del.setReconnectAttempts(val)
+      self
+    end
+
+    # Set or Get the reconnect attempts for a fluent API
+    def reconnect_attempts(val = nil)
+      if val
+        @j_del.setReconnectAttempts(val)
+        self
+      else
+        @j_del.getReconnectAttempts
+      end
+    end
+
+    # Set the reconnect interval
+    def reconnect_interval=(val)
+      @j_del.setReconnectInterval(val)
+      self
+    end
+
+    # Set or Get the reconnect interval for a fluent API
+    def reconnect_interval(val = nil)
+      if val
+        @j_del.setReconnectInterval(val)
+        self
+      else
+        @j_del.getReconnectInterval
+      end
+    end
+
+    # Set the connect timeout
+    def connect_timeout=(val)
+      @j_del.setConnectTimeout(val)
+      self
+    end
+
+    # Set or Get the connect timeout for a fluent API
+    def connect_timeout(val = nil)
+      if val
+        @j_del.setConnectTimeout(val)
+        self
+      else
+        @j_del.getConnectTimeout
+      end
     end
 
     # Close the NetClient. Any open connections will be closed.
@@ -145,8 +182,9 @@ module Vertx
       if compl == nil
         @j_del.write(j_buff)
       else
-        @j_del.write(j_buff, compl)
+        @j_del.write(j_buff, ARWrappedHandler.new(compl))
       end
+      self
     end
 
     # Write a String to the socket. The handler will be called when the string has actually been written to the wire.
@@ -157,16 +195,16 @@ module Vertx
       if (compl == nil)
         @j_del.write(str, enc)
       else
-        @j_del.write(str, enc, compl)
+        @j_del.write(str, enc, ARWrappedHandler.new(compl))
       end
+      self
     end
 
     # Set a closed handler on the socket.
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def closed_handler(proc = nil, &hndlr)
-      hndlr = proc if proc
-      @closed_handler = hndlr;
+    def closed_handler(&hndlr)
+      @closed_handler = hndlr
+      self
     end
 
     #  Tell the kernel to stream a file directly from disk to the outgoing connection, bypassing userspace altogether
@@ -174,6 +212,7 @@ module Vertx
     # @param [String] file_path. Path to file to send.
     def send_file(file_path)
       @j_del.sendFile(file_path)
+      self
     end
 
     # Close the socket

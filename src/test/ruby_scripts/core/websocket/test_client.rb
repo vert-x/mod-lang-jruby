@@ -38,7 +38,7 @@ def echo(binary)
 
     ws.data_handler do |buff|
       @tu.check_thread
-      ws.write_buffer(buff)
+      ws.write(buff)
     end
 
   end

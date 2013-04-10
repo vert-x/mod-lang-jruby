@@ -25,8 +25,9 @@ module Vertx
     # asynchronously. To avoid running out of memory by putting too much on the write queue,
     # check the {#write_queue_full?} method before writing. This is done automatically if using a {Pump}.
     # @param [Buffer]. The buffer to write.
-    def write_buffer(buff)
-      @j_del.writeBuffer(buff._to_java_buffer)
+    def write(buff)
+      @j_del.write(buff._to_java_buffer)
+      self
     end
 
     # Set the maximum size of the write queue. You will still be able to write to the stream even
@@ -35,6 +36,12 @@ module Vertx
     # @param [FixNum] size. The maximum size, in bytes.
     def write_queue_max_size=(size)
       @j_del.setWriteQueueMaxSize(size)
+    end
+
+    # For a fluent API
+    def write_queue_max_size(size)
+      @j_del.setWriteQueueMaxSize(size)
+      self
     end
 
     # Is the write queue full?
@@ -48,12 +55,14 @@ module Vertx
     # @param [Block] hndlr. The drain handler
     def drain_handler(&hndlr)
       @j_del.drainHandler(hndlr)
+      self
     end
 
     # Set an execption handler on the stream.
     # @param [Block] hndlr. The exception handler
     def exception_handler(&hndlr)
       @j_del.exceptionHandler(hndlr)
+      self
     end
 
     # @private
@@ -72,33 +81,37 @@ module Vertx
 
     # Set a data handler. As data is read, the handler will be called with the data.
     # @param [Block] hndlr. The data handler
-    def data_handler(proc = nil, &hndlr)
-      hndlr = proc if proc
+    def data_handler(&hndlr)
       @j_del.dataHandler(Proc.new { |j_buff|
         hndlr.call(Buffer.new(j_buff))
       })
+      self
     end
 
     # Pause the ReadStream. After calling this, the ReadStream will aim to send no more data to the {#data_handler}
     def pause
       @j_del.pause
+      self
     end
 
     # Resume reading. If the ReadStream has been paused, reading will recommence on it.
     def resume
       @j_del.resume
+      self
     end
 
     # Set an execption handler on the stream.
     # @param [Block] hndlr. The exception handler
     def exception_handler(&hndlr)
       @j_del.exceptionHandler(hndlr)
+      self
     end
 
     # Set an end handler on the stream. Once the stream has ended, and there is no more data to be read, this handler will be called.
     # @param [Block] hndlr. The exception handler
     def end_handler(&hndlr)
       @j_del.endHandler(hndlr)
+      self
     end
 
     # @private

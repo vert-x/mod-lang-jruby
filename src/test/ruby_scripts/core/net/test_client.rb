@@ -30,8 +30,9 @@ def test_echo
     }
   }.listen(8080)
 
-  @client = NetClient.new.connect(8080, "localhost") { |socket|
+  @client = NetClient.new.connect(8080, "localhost") { |err, socket|
     @tu.check_thread
+    @tu.azzert err == nil
     sends = 10
     size = 100
 
@@ -99,8 +100,9 @@ def test_echo_ssl
   @client.trust_store_path = './src/test/keystores/client-truststore.jks'
   @client.trust_store_password = 'wibble'
 
-  @client.connect(8080, "localhost") { |socket|
+  @client.connect(8080, "localhost") { |err, socket|
     @tu.check_thread
+    @tu.azzert err == nil
     sends = 10
     size = 100
 
@@ -159,8 +161,9 @@ def test_write_str
     }
   }.listen(8080)
 
-  @client = NetClient.new.connect(8080, "localhost") { |socket|
+  @client = NetClient.new.connect(8080, "localhost") { |err, socket|
     @tu.check_thread
+    @tu.azzert err == nil
     sent = 'some-string'
     received = Buffer.create()
 

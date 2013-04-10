@@ -125,7 +125,7 @@ def test_async_file_streams
     for i in 0..num_chunks - 1
       buff = TestUtils.gen_buffer(chunk_size)
       tot_buff.append_buffer(buff)
-      write_stream.write_buffer(buff)
+      write_stream.write(buff)
     end
     file.close do
       FileSystem::open(filename) do |err, file|

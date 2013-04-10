@@ -20,7 +20,7 @@ require "test_utils"
 
 @server = HttpServer.new
 @rm = RouteMatcher.new
-@server.request_handler(@rm)
+@server.request_handler(&@rm.to_proc)
 @server.listen(8080)
 
 @client = HttpClient.new
@@ -130,9 +130,9 @@ def route(method, regex, pattern, params, uri)
   end
 
   if regex
-    @rm.send(method + '_re', pattern, handler)
+    @rm.send(method + '_re', pattern, &handler)
   else
-    @rm.send(method, pattern, handler)
+    @rm.send(method, pattern, &handler)
   end
 
   method = 'get' if method == 'all'
