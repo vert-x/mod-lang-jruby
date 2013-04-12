@@ -149,16 +149,19 @@ module Vertx
     # @param [FixNum] The write queue max size
     def write_queue_max_size=(val)
       @j_pump.setWriteQueueMaxSize(val)
+      self
     end
 
     # Start the Pump. The Pump can be started and stopped multiple times.
     def start
       @j_pump.start
+      self
     end
 
     # Stop the Pump. The Pump can be started and stopped multiple times.
     def stop
       @j_pump.stop
+      self
     end
 
     # @return [FixNum] Return the total number of bytes pumped by this pump.
