@@ -168,9 +168,9 @@ module Vertx
       @write_handler_id = EventBus.register_simple_handler { |msg|
         write_buffer(msg.body)
       }
-      @j_del.closedHandler(Proc.new {
+      @j_del.closeHandler(Proc.new {
         EventBus.unregister_handler(@write_handler_id)
-        @closed_handler.call if @closed_handler
+        @close_handler.call if @close_handler
       })
     end
 
@@ -202,8 +202,8 @@ module Vertx
 
     # Set a closed handler on the socket.
     # @param [Block] hndlr A block to be used as the handler
-    def closed_handler(&hndlr)
-      @closed_handler = hndlr
+    def close_handler(&hndlr)
+      @close_handler = hndlr
       self
     end
 

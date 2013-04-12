@@ -61,6 +61,7 @@ module Vertx
       @j_server.installApp(j_config) { |j_sock|
         hndlr.call(SockJSSocket.new(j_sock))
       }
+      self
     end
 
     def bridge(config, inbound_permitted, outbound_permitted, auth_timeout = 5 * 60 * 1000, auth_address = nil)
@@ -68,6 +69,7 @@ module Vertx
       j_outbound_permitted = org.vertx.java.core.json.JsonArray.new(outbound_permitted)
       @j_server.bridge(org.vertx.java.core.json.JsonObject.new(config), j_inbound_permitted,
                        j_outbound_permitted, auth_timeout, auth_address)
+      self
     end
 
   end

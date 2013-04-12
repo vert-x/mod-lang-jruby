@@ -83,7 +83,7 @@ def test_async_file
     for i in 0..num_chunks - 1
       buff = TestUtils.gen_buffer(chunk_size)
       tot_buff.append_buffer(buff)
-      file.write(buff, i * chunk_size) do
+      file.write_at_pos(buff, i * chunk_size) do
         @tu.check_thread
         written += 1
         if written == num_chunks
@@ -92,7 +92,7 @@ def test_async_file
           read = 0
           for j in 0..num_chunks - 1
             pos = j * chunk_size
-            file.read(tot_read, pos, pos, chunk_size) do |err, buff|
+            file.read_at_pos(tot_read, pos, pos, chunk_size) do |err, buff|
               @tu.check_thread
               @tu.azzert(err == nil)
               read += 1
@@ -121,7 +121,7 @@ def test_async_file_streams
     num_chunks = 100;
     chunk_size = 1000;
     tot_buff = Buffer.create()
-    write_stream = file.write_stream
+    write_stream = file
     for i in 0..num_chunks - 1
       buff = TestUtils.gen_buffer(chunk_size)
       tot_buff.append_buffer(buff)
@@ -131,7 +131,7 @@ def test_async_file_streams
       FileSystem::open(filename) do |err, file|
         @tu.check_thread
         @tu.azzert(err == nil)
-        read_stream = file.read_stream
+        read_stream = file
         tot_read = Buffer.create()
         read_stream.data_handler do |data|
           tot_read.append_buffer(data)

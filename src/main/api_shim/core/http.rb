@@ -533,6 +533,7 @@ module Vertx
     # Set a handler to receive the entire body in one go - do not use this for large bodies
     def body_handler(&hndlr)
       @j_del.bodyHandler(hndlr)
+      self
     end
 
   end
@@ -600,6 +601,7 @@ module Vertx
     # Set a handler to receive the entire body in one go - do not use this for large bodies
     def body_handler(&hndlr)
       @j_del.bodyHandler(hndlr)
+      self
     end
 
     # Get the remote address
@@ -805,10 +807,10 @@ module Vertx
       @text_handler_id = EventBus.register_simple_handler { |msg|
         write_text_frame(msg.body)
       }
-      @j_del.closedHandler(Proc.new {
+      @j_del.closeHandler(Proc.new {
         EventBus.unregister_handler(@binary_handler_id)
         EventBus.unregister_handler(@text_handler_id)
-        @closed_handler.call if @closed_handler
+        @close_handler.call if @close_handler
       })
     end
 
@@ -816,12 +818,14 @@ module Vertx
     # @param [Buffer] buffer. Data to write.
     def write_binary_frame(buffer)
       @j_del.writeBinaryFrame(buffer._to_java_buffer)
+      self
     end
 
     # Write data to the websocket as a text frame
     # @param [String] str. String to write.
     def write_text_frame(str)
       @j_del.writeTextFrame(str)
+      self
     end
 
     # Close the websocket
@@ -847,8 +851,8 @@ module Vertx
 
     # Set a closed handler on the websocket.
     # @param [Block] hndlr A block to be used as the handler
-    def closed_handler(&hndlr)
-      @closed_handler = hndlr;
+    def close_handler(&hndlr)
+      @close_handler = hndlr;
     end
 
   end

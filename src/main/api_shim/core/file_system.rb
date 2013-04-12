@@ -100,14 +100,16 @@ module Vertx
   # @author {http://tfox.org Tim Fox}
   class AsyncFile
 
+    include ReadStream, WriteStream
+
     # @private
     def initialize(j_file)
-      @j_file = j_file
+      @j_del = j_file
     end
 
     # Close the file, asynchronously.
     def close(&block)
-      @j_file.close(ARWrappedHandler.new(block))
+      @j_del.close(ARWrappedHandler.new(block))
     end
 
     # Write a {Buffer} to the file, asynchronously.
@@ -116,8 +118,8 @@ module Vertx
     # @param [Buffer] buffer The buffer to write
     # @param [FixNum] position The position in the file where to write the buffer. Position is measured in bytes and
     # starts with zero at the beginning of the file.
-    def write(buffer, position, &block)
-      @j_file.write(buffer._to_java_buffer, position, ARWrappedHandler.new(block))
+    def write_at_pos(buffer, position, &block)
+      @j_del.write(buffer._to_java_buffer, position, ARWrappedHandler.new(block))
       self
     end
 
@@ -128,43 +130,17 @@ module Vertx
     # @param [FixNum] offset The position in the buffer where to start writing the data.
     # @param [FixNum] position The position in the file where to read the data.
     # @param [FixNum] length The number of bytes to read.
-    def read(buffer, offset, position, length, &block)
-      @j_file.read(buffer._to_java_buffer, offset, position, length, ARWrappedHandler.new(block) { |j_buff| Buffer.new(j_buff) })
+    def read_at_pos(buffer, offset, position, length, &block)
+      @j_del.read(buffer._to_java_buffer, offset, position, length, ARWrappedHandler.new(block) { |j_buff| Buffer.new(j_buff) })
       self
-    end
-
-    # @return [WriteStream] A write stream operating on the file.
-    def write_stream
-      AsyncFileWriteStream.new(@j_file.writeStream)
-    end
-
-    # @return [ReadStream] A read stream operating on the file.
-    def read_stream
-      AsyncFileReadStream.new(@j_file.readStream)
     end
 
     # Flush any writes made to this file to underlying persistent storage, asynchronously.
     # If the file was opened with flush set to true then calling this method will have no effect.
     # @param [Block] hndlr a block representing the handler which is called on completion.
     def flush
-      Future.new(@j_file.flush)
+      Future.new(@j_del.flush)
       self
-    end
-
-    # @private
-    class AsyncFileWriteStream
-      include WriteStream
-      def initialize(j_ws)
-        @j_del = j_ws
-      end
-    end
-
-    # @private
-    class AsyncFileReadStream
-      include ReadStream
-      def initialize(j_rs)
-        @j_del = j_rs
-      end
     end
 
   end

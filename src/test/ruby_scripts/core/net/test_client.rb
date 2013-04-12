@@ -133,7 +133,7 @@ def test_echo_ssl
       #puts "end\n"
     }
 
-    socket.closed_handler {
+    socket.close_handler {
       @tu.check_thread
       #puts "closed\n"
     }

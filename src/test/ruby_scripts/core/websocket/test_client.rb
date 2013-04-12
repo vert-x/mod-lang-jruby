@@ -108,7 +108,7 @@ def test_close
 
   @client.connect_web_socket("/someurl") do |ws|
     @tu.check_thread
-    ws.closed_handler do
+    ws.close_handler do
       @tu.test_complete
     end
     ws.write_text_frame("foo");
@@ -127,7 +127,7 @@ def test_close_from_connect
 
   @client.connect_web_socket("/someurl") do |ws|
     @tu.check_thread
-    ws.closed_handler do
+    ws.close_handler do
       @tu.test_complete
     end
   end
