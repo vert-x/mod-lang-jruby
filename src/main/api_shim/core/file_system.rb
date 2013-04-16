@@ -265,14 +265,14 @@ module Vertx
     # Create a symbolic link, asynchronously.
     # @param [String] link Path of the link to create.
     # @param [String] existing Path of where the link points to.
-    def FileSystem.sym_link(link, existing, &block)
-       @@j_fs.symLink(link, existing, ARWrappedHandler.new(block))
+    def FileSystem.symlink(link, existing, &block)
+       @@j_fs.symlink(link, existing, ARWrappedHandler.new(block))
        self
     end
 
-    # Synchronous version of {#FileSystem.sym_link}
-    def FileSystem.sym_link_sync(link, existing)
-      @@j_fs.symLinkSync(link, existing)
+    # Synchronous version of {#FileSystem.symlink}
+    def FileSystem.symlink_sync(link, existing)
+      @@j_fs.symlinkSync(link, existing)
       self
     end
 
@@ -291,14 +291,14 @@ module Vertx
 
     # Read a symbolic link, asynchronously. I.e. tells you where the symbolic link points.
     # @param [String] link Path of the link to read.
-    def FileSystem.read_sym_link(link, &block)
-      @@j_fs.readSymLink(link, ARWrappedHandler.new(block))
+    def FileSystem.read_symlink(link, &block)
+      @@j_fs.readSymlink(link, ARWrappedHandler.new(block))
       self
     end
 
-    # Synchronous version of {#FileSystem.read_sym_link}
-    def FileSystem.read_sym_link_sync(link)
-      @@j_fs.readSymLinkSync(link)
+    # Synchronous version of {#FileSystem.read_symlink}
+    def FileSystem.read_symlink_sync(link)
+      @@j_fs.readSymlinkSync(link)
     end
 
     # Delete a file on the file system, asynchronously.
