@@ -15,6 +15,7 @@
 require 'core/streams'
 require 'core/ssl_support'
 require 'core/tcp_support'
+require 'core/wrapped_handler'
 
 module Vertx
 
@@ -23,7 +24,7 @@ module Vertx
   # @author {http://tfox.org Tim Fox}
   class HttpServer
 
-    include SSLSupport, TCPSupport
+    include SSLSupport, ServerSSLSupport, TCPSupport, ServerTCPSupport
 
     # Create a new HttpServer
     def initialize
@@ -32,48 +33,36 @@ module Vertx
 
     # Set the HTTP request handler for the server.
     # As HTTP requests arrive on the server a new {HttpServerRequest} instance will be created and passed to the handler.
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def request_handler(proc = nil, &hndlr)
-      hndlr = proc if proc
+    def request_handler(&hndlr)
       @j_del.requestHandler { |j_del| hndlr.call(HttpServerRequest.new(j_del)) }
       self
     end
 
     # Set the websocket handler for the server.
     # As websocket requests arrive on the server and are accepted a new {WebSocket} instance will be created and passed to the handler.
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def websocket_handler(proc = nil, &hndlr)
-      hndlr = proc if proc
+    def websocket_handler(&hndlr)
       @j_del.websocketHandler do |param|
         hndlr.call(ServerWebSocket.new(param))
       end
-
       self
     end
 
     # Instruct the server to listen for incoming connections.
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
-    # @param [Proc] proc A proc to be used as the handler
-    def listen(port, host = "0.0.0.0", proc = nil, &hndlr)
-      hndlr = proc if proc
+    def listen(port, host = "0.0.0.0", &hndlr)
       @j_del.listen(port, host, hndlr)
-    end
-
-    # Client authentication is an extra level of security in SSL, and requires clients to provide client certificates.
-    # Those certificates must be added to the server trust store.
-    # @param [Boolean] val. If true then the server will request client authentication from any connecting clients, if they
-    # do not authenticate then they will not make a connection.
-    def client_auth_required=(val)
-      @j_del.setClientAuthRequired(val)
-      self
     end
 
     # Close the server. The handler will be called when the close is complete.
     def close(&hndlr)
-      @j_del.close(hndlr)
+      if hndlr
+        @j_del.close(ARWrappedHandler.new(hndlr))
+      else
+        @j_del.close
+      end
     end
 
     # @private
@@ -91,7 +80,7 @@ module Vertx
   # @author {http://tfox.org Tim Fox}
   class HttpClient
 
-    include SSLSupport, TCPSupport
+    include SSLSupport, ClientSSLSupport, TCPSupport
 
     # Create a new HttpClient
     def initialize
@@ -99,10 +88,8 @@ module Vertx
     end
 
     # Set the exception handler.
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def exception_handler(proc = nil, &hndlr)
-      hndlr = proc if proc
+    def exception_handler(&hndlr)
       @j_del.exceptionHandler(hndlr)
       self
     end
@@ -115,9 +102,14 @@ module Vertx
       self
     end
 
-    # @return [FixNum] The maxium number of connections this client will pool.
-    def max_pool_size
-      @j_del.getMaxPoolSize
+    # Get or set the max pool size
+    def max_pool_size(val = nil)
+      if val
+        @j_del.setMaxPoolSize(val)
+        self
+      else
+        @j_del.getMaxPoolSize
+      end
     end
 
     # If val is true then, after the request has ended the connection will be returned to the pool
@@ -132,13 +124,14 @@ module Vertx
       self
     end
 
-    # Should the client trust ALL server certificates?
-    # @param [Boolean] val. If val is set to true then the client will trust ALL server certificates and will not attempt to authenticate them
-    # against it's local client trust store. The default value is false.
-    # Use this method with caution!
-    def trust_all=(val)
-      @j_del.setTrustAll(val)
-      self
+    # Get or set keep alive
+    def keep_alive(val = nil)
+      if val
+        @j_del.setKeepAlive(val)
+        self
+      else
+        @j_del.isKeepAlive
+      end
     end
 
     # Set the port that the client will attempt to connect to on the server on. The default value is 80
@@ -148,6 +141,16 @@ module Vertx
       self
     end
 
+    # Get or set port
+    def port(val = nil)
+      if val
+        @j_del.setPort(val)
+        self
+      else
+        @j_del.getPort
+      end
+    end
+
     # Set the host name or ip address that the client will attempt to connect to on the server on.
     # @param [String] host. The host name or ip address to connect to.
     def host=(val)
@@ -155,12 +158,33 @@ module Vertx
       self
     end
 
-    # Attempt to connect an HTML5 websocket to the specified URI.
+    # Get or set host
+    def host(val = nil)
+      if val
+        @j_del.setHost(val)
+        self
+      else
+        @j_del.getHost
+      end
+    end
+
+    # Get or set verify host
+    def verify_host(val = nil)
+      if val
+        @j_del.setVerifyHost(val)
+        self
+      else
+        @j_del.isVerifyHost
+      end
+    end
+
+    # Attempt to connect a websocket to the specified URI.
     # The connect is done asynchronously and the handler is called with a  {WebSocket} on success.
     # @param [String] uri. A relative URI where to connect the websocket on the host, e.g. /some/path
     # @param [Block] hndlr. The handler to be called with the {WebSocket}
     def connect_web_socket(uri, &hndlr)
       @j_del.connectWebsocket(uri) { |j_ws| hndlr.call(WebSocket.new(j_ws)) }
+      self
     end
 
     # This is a quick version of the {#get} method where you do not want to do anything with the request
@@ -173,6 +197,7 @@ module Vertx
     # @param [Block] hndlr. The handler to be called with the {HttpClientResponse}
     def get_now(uri, headers = nil, &hndlr)
       @j_del.getNow(uri, headers, resp_handler(hndlr))
+      self
     end
 
     # This method returns an {HttpClientRequest} instance which represents an HTTP OPTIONS request with the specified uri.
@@ -302,7 +327,7 @@ module Vertx
   #   req.write(Buffer.create_from_str("chunk of body 1");
   #   req.write(Buffer.create_from_str("chunk of body 2");
   #
-  #   req.end(); # This actually sends the request
+  #   req.end # This actually sends the request
   #
   # @author {http://tfox.org Tim Fox}
   class HttpClientRequest
@@ -336,7 +361,11 @@ module Vertx
     # @param [Block] hndlr. The handler will be called when the buffer has actually been written to the wire.
     # @return [HttpClientRequest] self So multiple operations can be chained.
     def write_buffer(chunk, &hndlr)
-      @j_del.writeBuffer(chunk._to_java_buffer)
+      if hndlr
+        @j_del.write(chunk._to_java_buffer, ArWrappedHandler.new(hndlr))
+      else
+        @j_del.write(chunk._to_java_buffer)
+      end
       self
     end
 
@@ -346,7 +375,11 @@ module Vertx
     # @param [Block] hndlr. The handler will be called when the buffer has actually been written to the wire.
     # @return [HttpClientRequest] self So multiple operations can be chained.
     def write_str(str, enc = "UTF-8", &hndlr)
-      @j_del.write(str, enc)
+      if hndlr
+        @j_del.write(str, enc, ArWrappedHandler.new(hndlr))
+      else
+        @j_del.write(str, enc)
+      end
       self
     end
 
@@ -364,6 +397,7 @@ module Vertx
     # be returned to the {HttpClient} pool so it can be assigned to another request.
     def end
       @j_del.end
+      self
     end
 
     # Same as {#write_buffer_and_end} but writes a String
@@ -371,6 +405,7 @@ module Vertx
     # @param [String] enc The encoding
     def write_str_and_end(str, enc = "UTF-8")
       @j_del.end(str, enc)
+      self
     end
 
     # Same as {#end} but writes some data to the response body before ending. If the response is not chunked and
@@ -378,6 +413,7 @@ module Vertx
     # @param [Buffer] chunk The Buffer to write
     def write_buffer_and_end(chunk)
       @j_del.end(chunk._to_java_buffer)
+      self
     end
 
     # Sets whether the request should used HTTP chunked encoding or not.
@@ -393,16 +429,35 @@ module Vertx
       self
     end
 
+    # Get or set chunked
+    def chunked(val = nil)
+      if val
+        @j_del.setChunked(val)
+        self
+      else
+        @j_del.getChunked
+      end
+    end
+
     # If you send an HTTP request with the header 'Expect' set to the value '100-continue'
     # and the server responds with an interim HTTP response with a status code of '100' and a continue handler
     # has been set using this method, then the handler will be called.
     # You can then continue to write data to the request body and later end it. This is normally used in conjunction with
     # the {#send_head} method to force the request header to be written before the request has ended.
-    # @param [Proc] proc. The handler
     # @param [Block] hndlr. The handler
-    def continue_handler(proc = nil, &hndlr)
-      hndlr = proc if proc
+    def continue_handler(&hndlr)
       @j_del.continueHandler(hndlr)
+      self
+    end
+
+    # Get or set timeout
+    def timeout(val = nil)
+      if val
+        @j_del.setTimeout(val)
+        self
+      else
+        @j_del.getTimeout
+      end
     end
 
   end
@@ -420,12 +475,16 @@ module Vertx
     # @private
     def initialize(j_del)
       @j_del = j_del
-      @status_code = j_del.statusCode
     end
 
     # @return [FixNum] the HTTP status code of the response.
     def status_code
-      @status_code
+      @j_del.statusCode
+    end
+
+    # @return [String] the status message
+    def status_message
+      @j_del.statusMessage
     end
 
     # Get a header value
@@ -462,9 +521,18 @@ module Vertx
       @trailers
     end
 
+    # Get all cookies
+    def cookies
+      if !@cookies
+        @cookies = @j_del.cookies
+      end
+      @cookies
+    end
+
     # Set a handler to receive the entire body in one go - do not use this for large bodies
     def body_handler(&hndlr)
       @j_del.bodyHandler(hndlr)
+      self
     end
 
   end
@@ -532,6 +600,17 @@ module Vertx
     # Set a handler to receive the entire body in one go - do not use this for large bodies
     def body_handler(&hndlr)
       @j_del.bodyHandler(hndlr)
+      self
+    end
+
+    # Get the remote address
+    def remote_address
+      @j_del.remoteAddress
+    end
+
+    # Get the absolute URI
+    def absolute_uri
+      @j_del.absoluteURI
     end
 
     def _to_java_request
@@ -569,8 +648,53 @@ module Vertx
       @j_del.statusCode = val
     end
 
+    # Get or set the status code
+    def status_code(val = nil)
+      if val
+        @j_del.setStatusCode(val)
+        self
+      else
+        @j_del.getStatusCode
+      end
+    end
+
+    # Set the status message
     def status_message=(val)
       @j_del.statusMessage = val
+    end
+
+    # Get or set the status message
+    def status_message(val = nil)
+      if val
+        @j_del.setStatusMessage(val)
+        self
+      else
+        @j_del.getStatusMessage
+      end
+    end
+
+    # Sets whether this response uses HTTP chunked encoding or not.
+    # @param [Boolean] val. If val is true, this response will use HTTP chunked encoding, and each call to write to the body
+    # will correspond to a new HTTP chunk sent on the wire. If chunked encoding is used the HTTP header
+    # 'Transfer-Encoding' with a value of 'Chunked' will be automatically inserted in the response.
+    # If chunked is false, this response will not use HTTP chunked encoding, and therefore if any data is written the
+    # body of the response, the total size of that data must be set in the 'Content-Length' header before any
+    # data is written to the response body.
+    # An HTTP chunked response is typically used when you do not know the total size of the request body up front.
+    # @return [HttpServerResponse] self So multiple operations can be chained.
+    def chunked=(val)
+      @j_del.setChunked(val)
+      self
+    end
+
+    # Get or set chunked
+    def chunked(val = nil)
+      if val
+        @j_del.setChunked(val)
+        self
+      else
+        @j_del.getChunked
+      end
     end
 
     # @return [Hash] The response headers
@@ -612,7 +736,11 @@ module Vertx
     # @param [Block] hndlr. The handler
     # @return [HttpServerResponse] self So multiple operations can be chained.
     def write_buffer(chunk, &hndlr)
-      @j_del.writeBuffer(chunk._to_java_buffer)
+      if hndlr
+        @j_del.write(chunk._to_java_buffer, ARWrappedHandler.new(hndlr))
+      else
+        @j_del.write(chunk._to_java_buffer)
+      end
       self
     end
 
@@ -622,8 +750,11 @@ module Vertx
     # @param [Block] hndlr. The handler
     # @return [HttpServerResponse] self So multiple operations can be chained.
     def write_str(str, enc = "UTF-8", &hndlr)
-      puts "writing str: #{str}"
-      @j_del.write(str, enc)
+      if hndlr
+        @j_del.write(str, enc, ARWrappedHandler.new(hndlr))
+      else
+        @j_del.write(str, enc)
+      end
       self
     end
 
@@ -633,20 +764,6 @@ module Vertx
     # @return [HttpServerResponse] self So multiple operations can be chained.
     def send_file(path)
       @j_del.sendFile(path)
-      self
-    end
-
-    # Sets whether this response uses HTTP chunked encoding or not.
-    # @param [Boolean] val. If val is true, this response will use HTTP chunked encoding, and each call to write to the body
-    # will correspond to a new HTTP chunk sent on the wire. If chunked encoding is used the HTTP header
-    # 'Transfer-Encoding' with a value of 'Chunked' will be automatically inserted in the response.
-    # If chunked is false, this response will not use HTTP chunked encoding, and therefore if any data is written the
-    # body of the response, the total size of that data must be set in the 'Content-Length' header before any
-    # data is written to the response body.
-    # An HTTP chunked response is typically used when you do not know the total size of the request body up front.
-    # @return [HttpServerResponse] self So multiple operations can be chained.
-    def chunked=(val)
-      @j_del.setChunked(val)
       self
     end
 
@@ -689,10 +806,10 @@ module Vertx
       @text_handler_id = EventBus.register_simple_handler { |msg|
         write_text_frame(msg.body)
       }
-      @j_del.closedHandler(Proc.new {
+      @j_del.closeHandler(Proc.new {
         EventBus.unregister_handler(@binary_handler_id)
         EventBus.unregister_handler(@text_handler_id)
-        @closed_handler.call if @closed_handler
+        @close_handler.call if @close_handler
       })
     end
 
@@ -700,12 +817,14 @@ module Vertx
     # @param [Buffer] buffer. Data to write.
     def write_binary_frame(buffer)
       @j_del.writeBinaryFrame(buffer._to_java_buffer)
+      self
     end
 
     # Write data to the websocket as a text frame
     # @param [String] str. String to write.
     def write_text_frame(str)
       @j_del.writeTextFrame(str)
+      self
     end
 
     # Close the websocket
@@ -730,11 +849,9 @@ module Vertx
     end
 
     # Set a closed handler on the websocket.
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def closed_handler(proc = nil, &hndlr)
-      hndlr = proc if proc
-      @closed_handler = hndlr;
+    def close_handler(&hndlr)
+      @close_handler = hndlr;
     end
 
   end
@@ -789,9 +906,11 @@ module Vertx
       @j_del = org.vertx.java.core.http.RouteMatcher.new
     end
 
-    # @private
-    def call(data)
-      input(data)
+    # Convert it to a Proc
+    def to_proc
+      return Proc.new do |request|
+        input(request)
+      end
     end
 
     # This method is called to provide the matcher with data.
@@ -802,190 +921,149 @@ module Vertx
 
     # Specify a handler that will be called for a matching HTTP GET
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def get(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def get(pattern, &hndlr)
       @j_del.get(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP PUT
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def put(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def put(pattern, &hndlr)
       @j_del.put(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP POST
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def post(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def post(pattern, &hndlr)
       @j_del.post(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP DELETE
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def delete(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def delete(pattern, &hndlr)
       @j_del.delete(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP OPTIONS
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def options(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def options(pattern, &hndlr)
       @j_del.options(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP HEAD
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def head(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def head(pattern, &hndlr)
       @j_del.head(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP TRACE
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def trace(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def trace(pattern, &hndlr)
       @j_del.trace(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP PATCH
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def patch(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def patch(pattern, &hndlr)
       @j_del.patch(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP CONNECT
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def connect(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def connect(pattern, &hndlr)
       @j_del.connect(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for any matching HTTP request
     # @param [String] The simple pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def all(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def all(pattern, &hndlr)
       @j_del.all(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP GET
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def get_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def get_re(pattern, &hndlr)
+
       @j_del.getWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP PUT
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def put_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def put_re(pattern, &hndlr)
       @j_del.putWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP POST
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def post_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def post_re(pattern, &hndlr)
       @j_del.postWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP DELETE
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def delete_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def delete_re(pattern, &hndlr)
       @j_del.deleteWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP OPTIONS
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def options_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def options_re(pattern, &hndlr)
       @j_del.optionsWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP HEAD
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def head_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def head_re(pattern, &hndlr)
       @j_del.headWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP TRACE
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
     def trace_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
       @j_del.traceWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP PATCH
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def patch_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def patch_re(pattern, &hndlr)
       @j_del.patchWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for a matching HTTP CONNECT
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def connect_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def connect_re(pattern, &hndlr)
       @j_del.connectWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called for any matching HTTP request
     # @param [String] A regular expression for a pattern
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def all_re(pattern, proc = nil, &hndlr)
-      hndlr = proc if proc
+    def all_re(pattern, &hndlr)
       @j_del.allWithRegEx(pattern) { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
     # Specify a handler that will be called when nothing matches
     # Default behaviour is to return a 404
-    # @param [Proc] proc A proc to be used as the handler
     # @param [Block] hndlr A block to be used as the handler
-    def no_match(proc = nil, &hndlr)
-      hndlr = proc if proc
+    def no_match(&hndlr)
       @j_del.noMatch { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 

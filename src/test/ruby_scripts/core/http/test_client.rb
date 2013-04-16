@@ -174,8 +174,6 @@ end
 
 def http_method(ssl, method, chunked)
 
-  # @logger.info("in http method #{method}")
-
   if ssl
     @server.ssl = true
     @server.key_store_path = './src/test/keystores/server-keystore.jks'
@@ -271,7 +269,8 @@ def vertx_stop
   @tu.check_thread
   @tu.unregister_all
   @client.close
-  @server.close do
+  @server.close do |err|
+    @tu.azzert err == nil
     @tu.app_stopped
   end
 end

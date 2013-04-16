@@ -24,6 +24,7 @@ import org.jruby.embed.ScriptingContainer;
 import org.jruby.exceptions.RaiseException;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.vertx.java.core.Vertx;
+import org.vertx.java.core.VertxException;
 import org.vertx.java.core.logging.Logger;
 import org.vertx.java.platform.Container;
 import org.vertx.java.platform.Verticle;
@@ -150,7 +151,7 @@ public class JRubyVerticleFactory implements VerticleFactory {
       this.scriptName = scriptName;
     }
 
-    public void start() throws Exception {
+    public void start() {
       try (InputStream is = cl.getResourceAsStream(scriptName)) {
         if (is == null) {
           throw new IllegalArgumentException("Cannot find verticle: " + scriptName);
@@ -169,11 +170,13 @@ public class JRubyVerticleFactory implements VerticleFactory {
         br.close();
         svert.append(";end;").append(modName);
         wrappingModule = (RubyModule)scontainer.runScriptlet(new StringReader(svert.toString()), scriptName);
+      } catch (Exception e) {
+        throw new VertxException(e);
       }
     }
 
 
-    public void stop() throws Exception {
+    public void stop() {
       if (wrappingModule != null) {
         try {
           // We call the script with receiver = null - this causes the method to be called on the top level

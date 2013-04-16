@@ -31,8 +31,10 @@ def test_echo
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080, "0.0.0.0") {
-    @client.connect(8080, "localhost") { |socket|
+
+    @client.connect(8080, "localhost") { |err, socket|
       @tu.check_thread
+      @tu.azzert err == nil
       sends = 10
       size = 100
 
@@ -51,23 +53,42 @@ def test_echo
 
       socket.drain_handler {
         @tu.check_thread
-        #puts "drained\n"
-      }
+        sends = 10
+        size = 100
 
-      socket.end_handler {
-        @tu.check_thread
-        #puts "end\n"
-      }
+        sent = Buffer.create()
+        received = Buffer.create()
 
-      socket.pause
-      socket.resume
-      socket.write_queue_full?
-      socket.write_queue_max_size=100000
+        socket.data_handler { |data|
+          @tu.check_thread
+          received.append_buffer(data)
 
-      (1..sends).each { |i|
-        data = TestUtils::gen_buffer(size)
-        sent.append_buffer(data)
-        socket.write_buffer(data)
+          if received.length == sends * size
+            @tu.azzert(TestUtils::buffers_equal(sent, received))
+            @tu.test_complete
+          end
+        }
+
+        socket.drain_handler {
+          @tu.check_thread
+          #puts "drained\n"
+        }
+
+        socket.end_handler {
+          @tu.check_thread
+          #puts "end\n"
+        }
+
+        socket.pause
+        socket.resume
+        socket.write_queue_full?
+        socket.write_queue_max_size=100000
+
+        (1..sends).each { |i|
+          data = TestUtils::gen_buffer(size)
+          sent.append_buffer(data)
+          socket.write_buffer(data)
+        }
       }
     }
   }
@@ -91,14 +112,16 @@ def test_echo_ssl
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080, "0.0.0.0") {
+
     @client.ssl = true
     @client.key_store_path = './src/test/keystores/client-keystore.jks'
     @client.key_store_password = 'wibble'
     @client.trust_store_path = './src/test/keystores/client-truststore.jks'
     @client.trust_store_password = 'wibble'
 
-    @client.connect(8080, "localhost") { |socket|
+    @client.connect(8080, "localhost") { |err, socket|
       @tu.check_thread
+      @tu.azzert err == nil
       sends = 10
       size = 100
 
@@ -129,7 +152,7 @@ def test_echo_ssl
         #puts "end\n"
       }
 
-      socket.closed_handler {
+      socket.close_handler {
         @tu.check_thread
         #puts "closed\n"
       }
@@ -157,7 +180,7 @@ def test_write_str
       socket.write_buffer(data) # Just echo it back
     }
   }.listen(8080, "localhost") {
-    @client.connect(8080, "localhost") { |socket|
+    @client.connect(8080, "localhost") { |err, socket|
       @tu.check_thread
       sent = 'some-string'
       received = Buffer.create()

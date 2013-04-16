@@ -14,6 +14,7 @@
 
 include Java
 
+require 'container'
 require 'core/timers'
 require 'core/buffer'
 require 'core/file_system'
@@ -22,9 +23,6 @@ require 'core/net'
 require 'core/parsetools'
 require 'core/streams'
 require 'core/shared_data'
-require 'core/logger'
 require 'core/event_bus'
 require 'core/sock_js'
-require 'core/deploy'
-require 'core/env'
 

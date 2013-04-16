@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require 'core/streams'
+require 'core/wrapped_handler.rb'
 
 module Vertx
 
@@ -99,14 +100,16 @@ module Vertx
   # @author {http://tfox.org Tim Fox}
   class AsyncFile
 
+    include ReadStream, WriteStream
+
     # @private
     def initialize(j_file)
-      @j_file = j_file
+      @j_del = j_file
     end
 
     # Close the file, asynchronously.
     def close(&block)
-      @j_file.close(FSWrappedHandler.new(block))
+      @j_del.close(ARWrappedHandler.new(block))
     end
 
     # Write a {Buffer} to the file, asynchronously.
@@ -115,8 +118,9 @@ module Vertx
     # @param [Buffer] buffer The buffer to write
     # @param [FixNum] position The position in the file where to write the buffer. Position is measured in bytes and
     # starts with zero at the beginning of the file.
-    def write(buffer, position, &block)
-      @j_file.write(buffer._to_java_buffer, position, FSWrappedHandler.new(block))
+    def write_at_pos(buffer, position, &block)
+      @j_del.write(buffer._to_java_buffer, position, ARWrappedHandler.new(block))
+      self
     end
 
     # Reads some data from a file into a buffer, asynchronously.
@@ -126,69 +130,21 @@ module Vertx
     # @param [FixNum] offset The position in the buffer where to start writing the data.
     # @param [FixNum] position The position in the file where to read the data.
     # @param [FixNum] length The number of bytes to read.
-    def read(buffer, offset, position, length, &block)
-      @j_file.read(buffer._to_java_buffer, offset, position, length, FSWrappedHandler.new(block) { |j_buff| Buffer.new(j_buff) })
-    end
-
-    # @return [WriteStream] A write stream operating on the file.
-    def write_stream
-      AsyncFileWriteStream.new(@j_file.getWriteStream)
-    end
-
-    # @return [ReadStream] A read stream operating on the file.
-    def read_stream
-      AsyncFileReadStream.new(@j_file.getReadStream)
+    def read_at_pos(buffer, offset, position, length, &block)
+      @j_del.read(buffer._to_java_buffer, offset, position, length, ARWrappedHandler.new(block) { |j_buff| Buffer.new(j_buff) })
+      self
     end
 
     # Flush any writes made to this file to underlying persistent storage, asynchronously.
     # If the file was opened with flush set to true then calling this method will have no effect.
     # @param [Block] hndlr a block representing the handler which is called on completion.
     def flush
-      Future.new(@j_file.flush)
-    end
-
-    # @private
-    class AsyncFileWriteStream
-      include WriteStream
-      def initialize(j_ws)
-        @j_del = j_ws
-      end
-    end
-
-    # @private
-    class AsyncFileReadStream
-      include ReadStream
-      def initialize(j_rs)
-        @j_del = j_rs
-      end
+      Future.new(@j_del.flush)
+      self
     end
 
   end
-
-  # @private
-  class FSWrappedHandler
-    include org.vertx.java.core.AsyncResultHandler
-
-    def initialize(handler, &result_converter)
-      @handler = handler
-      @result_converter = result_converter
-    end
-
-    def handle(async_result)
-      if @handler
-        if !async_result.exception
-          if @result_converter
-            @handler.call(nil, @result_converter.call(async_result.result))
-          else
-            @handler.call(nil, async_result.result)
-          end
-        else
-          @handler.call(async_result.exception, nil)
-        end
-      end
-    end
-
-  end
+ 
 
   # Represents the file-system and contains a broad set of operations for manipulating files.
   # An asynchronous and a synchronous version of each operation is provided.
@@ -208,12 +164,14 @@ module Vertx
     # @param [String] to Path of file to copy to
     # @param [Block] hndlr a block representing the handler which is called on completion.
     def FileSystem.copy(from, to, &block)
-      @@j_fs.copy(from, to, FSWrappedHandler.new(block))
+      @@j_fs.copy(from, to, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.copy}
     def FileSystem.copy_sync(from, to)
       @@j_fs.copySync(from, to)
+      self
     end
 
     # Copy a file recursively, asynchronously. The copy will fail if from does not exist, or if to already exists and is not empty.
@@ -222,36 +180,42 @@ module Vertx
     # @param [String] from Path of file to copy
     # @param [String] to Path of file to copy to
     def FileSystem.copy_recursive(from, to, &block)
-      @@j_fs.copy(from, to, true, FSWrappedHandler.new(block))
+      @@j_fs.copy(from, to, true, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.copy_recursive}
     def FileSystem.copy_recursive_sync(from, to)
       @@j_fs.copySync(from, to, true)
+      self
     end
 
     # Move a file, asynchronously. The move will fail if from does not exist, or if to already exists.
     # @param [String] from Path of file to move
     # @param [String] to Path of file to move to
     def FileSystem.move(from, to, &block)
-      @@j_fs.move(from, to, FSWrappedHandler.new(block))
+      @@j_fs.move(from, to, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.move}
     def FileSystem.move_sync(from, to)
       @@j_fs.moveSync(from, to)
+      self
     end
 
     # Truncate a file, asynchronously. The move will fail if path does not exist.
     # @param [String] path Path of file to truncate
     # @param [FixNum] len Length to truncate file to. Will fail if len < 0. If len > file size then will do nothing.
     def FileSystem.truncate(path, len, &block)
-      @@j_fs.truncate(path, len, FSWrappedHandler.new(block))
+      @@j_fs.truncate(path, len, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.truncate}
     def FileSystem.truncate_sync(path, len)
       @@j_fs.truncateSync(path, len)
+      self
     end
 
     # Change the permissions on a file, asynchronously. If the file is directory then all contents will also have their permissions changed recursively.
@@ -261,18 +225,21 @@ module Vertx
     # used to set the permissions for any regular files (not directories).
     # @param [String] dir_perms A permission string of the form rwxr-x---. Used to set permissions for regular files.
     def FileSystem.chmod(path, perms, dir_perms = nil, &block)
-      @@j_fs.chmod(path, perms, dir_perms, FSWrappedHandler.new(block))
+      @@j_fs.chmod(path, perms, dir_perms, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.chmod}
     def FileSystem.chmod_sync(path, perms, dir_perms = nil)
       @@j_fs.chmodSync(path, perms, dir_perms)
+      self
     end
 
     # Get file properties for a file, asynchronously.
     # @param [String] path Path to file
     def FileSystem.props(path, &block)
-      @@j_fs.props(path, FSWrappedHandler.new(block) { |j_props| FileProps.new(j_props) })
+      @@j_fs.props(path, ARWrappedHandler.new(block) { |j_props| FileProps.new(j_props) })
+      self
     end
 
     # Synchronous version of {#FileSystem.props}
@@ -285,58 +252,67 @@ module Vertx
     # @param [String] link Path of the link to create.
     # @param [String] existing Path of where the link points to.
     def FileSystem.link(link, existing, &block)
-       @@j_fs.link(link, existing, FSWrappedHandler.new(block))
+       @@j_fs.link(link, existing, ARWrappedHandler.new(block))
+       self
     end
 
     # Synchronous version of {#FileSystem.link}
     def FileSystem.link_sync(link, existing)
       @@j_fs.linkSync(link, existing)
+      self
     end
 
     # Create a symbolic link, asynchronously.
     # @param [String] link Path of the link to create.
     # @param [String] existing Path of where the link points to.
-    def FileSystem.sym_link(link, existing, &block)
-       @@j_fs.symLink(link, existing, FSWrappedHandler.new(block))
+    def FileSystem.symlink(link, existing, &block)
+       @@j_fs.symlink(link, existing, ARWrappedHandler.new(block))
+       self
     end
 
-    # Synchronous version of {#FileSystem.sym_link}
-    def FileSystem.sym_link_sync(link, existing)
-      @@j_fs.symLinkSync(link, existing)
+    # Synchronous version of {#FileSystem.symlink}
+    def FileSystem.symlink_sync(link, existing)
+      @@j_fs.symlinkSync(link, existing)
+      self
     end
 
     # Unlink a hard link.
     # @param [String] link Path of the link to unlink.
     def FileSystem.unlink(link, &block)
-      @@j_fs.unlink(link, FSWrappedHandler.new(block))
+      @@j_fs.unlink(link, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.unlink}
     def FileSystem.unlinkSync(link)
       @@j_fs.unlinkSync(link)
+      self
     end
 
     # Read a symbolic link, asynchronously. I.e. tells you where the symbolic link points.
     # @param [String] link Path of the link to read.
-    def FileSystem.read_sym_link(link, &block)
-      @@j_fs.readSymLink(link, FSWrappedHandler.new(block))
+    def FileSystem.read_symlink(link, &block)
+      @@j_fs.readSymlink(link, ARWrappedHandler.new(block))
+      self
     end
 
-    # Synchronous version of {#FileSystem.read_sym_link}
-    def FileSystem.read_sym_link_sync(link)
-      @@j_fs.readSymLinkSync(link)
+    # Synchronous version of {#FileSystem.read_symlink}
+    def FileSystem.read_symlink_sync(link)
+      @@j_fs.readSymlinkSync(link)
     end
 
     # Delete a file on the file system, asynchronously.
     # The delete will fail if the file does not exist, or is a directory and is not empty.
     # @param [String] path Path of the file to delete.
     def FileSystem.delete(path, &block)
-      @@j_fs.delete(path, FSWrappedHandler.new(block))
+      @@j_fs.delete(path, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.delete}
     def FileSystem.delete_sync(path)
       @@j_fs.deleteSync(path)
+      self
     end
 
     # Delete a file on the file system recursively, asynchronously.
@@ -344,12 +320,14 @@ module Vertx
     # will be deleted recursively.
     # @param [String] path Path of the file to delete.
     def FileSystem.delete_recursive(path, &block)
-      @@j_fs.delete(path, true, FSWrappedHandler.new(block))
+      @@j_fs.delete(path, true, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.delete_recursive}
     def FileSystem.delete_recursive_sync(path)
       @@j_fs.deleteSync(path, true)
+      self
     end
 
     # Create a directory, asynchronously.
@@ -358,12 +336,14 @@ module Vertx
     # @param [String] path Path of the directory to create.
     # @param [String] perms. A permission string of the form rwxr-x--- to give directory.
     def FileSystem.mkdir(path, perms = nil, &block)
-      @@j_fs.mkdir(path, perms, FSWrappedHandler.new(block))
+      @@j_fs.mkdir(path, perms, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.mkdir}
     def FileSystem.mkdir_sync(path, perms = nil)
       @@j_fs.mkdirSync(path, perms)
+      self
     end
 
     # Create a directory, and create all it's parent directories if they do not already exist, asynchronously.
@@ -371,12 +351,14 @@ module Vertx
     # @param [String] path Path of the directory to create.
     # @param [String] perms. A permission string of the form rwxr-x--- to give the created directory(ies).
     def FileSystem.mkdir_with_parents(path, perms = nil, &block)
-      @@j_fs.mkdir(path, perms, true, FSWrappedHandler.new(block))
+      @@j_fs.mkdir(path, perms, true, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.mkdir_with_parents}
     def FileSystem.mkdir_with_parents_sync(path, perms = nil)
       @@j_fs.mkdirSync(path, perms, true)
+      self
     end
 
     # Read a directory, i.e. list it's contents, asynchronously.
@@ -385,7 +367,8 @@ module Vertx
     # @param [String] filter A regular expression to filter out the contents of the directory. If the filter is not nil
     # then only files which match the filter will be returned.
     def FileSystem.read_dir(path, filter = nil, &block)
-      @@j_fs.readDir(path, filter, FSWrappedHandler.new(block))
+      @@j_fs.readDir(path, filter, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.read_dir}
@@ -396,7 +379,8 @@ module Vertx
     # Read the contents of an entire file as a {Buffer}, asynchronously.
     # @param [String] path Path of the file to read.
     def FileSystem.read_file_as_buffer(path, &block)
-      @@j_fs.readFile(path, FSWrappedHandler.new(block) { |j_buff| Buffer.new(j_buff)})
+      @@j_fs.readFile(path, ARWrappedHandler.new(block) { |j_buff| Buffer.new(j_buff)})
+      self
     end
 
     # Synchronous version of {#FileSystem.read_file_as_buffer}
@@ -408,12 +392,14 @@ module Vertx
     # @param [String] path Path of the file to write.
     # @param [String] buffer The Buffer to write
     def FileSystem.write_buffer_to_file(path, buffer, &block)
-      @@j_fs.writeFile(path, buffer, FSWrappedHandler.new(block))
+      @@j_fs.writeFile(path, buffer, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.write_buffer_to_file}
     def FileSystem.write_buffer_to_file_sync(path, buffer)
       @@j_fs.writeFileSync(path, buffer)
+      self
     end
 
     # Open a file on the file system, asynchronously.
@@ -424,7 +410,8 @@ module Vertx
     # @param [Boolean] create_new Create the file if it doesn't already exist?
     # @param [Boolean] flush Whenever any data is written to the file, flush all changes to permanent storage immediately?
     def FileSystem.open(path, perms = nil, read = true, write = true, create_new = true, flush = false, &block)
-      @@j_fs.open(path, perms, read, write, create_new, flush, FSWrappedHandler.new(block){ |j_file| AsyncFile.new(j_file)})
+      @@j_fs.open(path, perms, read, write, create_new, flush, ARWrappedHandler.new(block){ |j_file| AsyncFile.new(j_file)})
+      self
     end
 
     # Synchronous version of {#FileSystem.open}
@@ -437,18 +424,21 @@ module Vertx
     # @param [String] path Path of the file to create.
     # @param [String] perms The file will be created with these permissions.
     def FileSystem.create_file(path, perms = nil, &block)
-      @@j_fs.createFile(path, perms, FSWrappedHandler.new(block))
+      @@j_fs.createFile(path, perms, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.create_file}
     def FileSystem.create_file_sync(path, perms = nil)
       @@j_fs.createFileSync(path, perms)
+      self
     end
 
     # Check if  a file exists, asynchronously.
     # @param [String] path Path of the file to check.
     def FileSystem.exists?(path, &block)
-      @@j_fs.exists(path, FSWrappedHandler.new(block))
+      @@j_fs.exists(path, ARWrappedHandler.new(block))
+      self
     end
 
     # Synchronous version of {#FileSystem.exists?}
@@ -459,7 +449,8 @@ module Vertx
     # Get properties for the file system, asynchronously.
     # @param [String] path Path in the file system.
     def FileSystem.fs_props(path, &block)
-      @@j_fs.fsProps(path, FSWrappedHandler.new(block) { |j_props| FSProps.new(j_props)})
+      @@j_fs.fsProps(path, ARWrappedHandler.new(block) { |j_props| FSProps.new(j_props)})
+      self
     end
 
     # Synchronous version of {#FileSystem.fs_props}

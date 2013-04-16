@@ -33,12 +33,12 @@ module Vertx
   # @param config [Hash] JSON configuration for the verticle
   # @param instances [FixNum] Number of instances to deploy
   # @param block [Block] Block will be executed when deploy has completed
-  def Vertx.deploy_worker_verticle(main, config = nil, instances = 1, &block)
+  def Vertx.deploy_worker_verticle(main, config = nil, instances = 1, multi_threaded = false, &block)
     if config
       json_str = JSON.generate(config)
       config = org.vertx.java.core.json.JsonObject.new(json_str)
     end
-    org.vertx.java.platform.impl.JRubyVerticleFactory.container.deployWorkerVerticle(main, config, instances, block)
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.deployWorkerVerticle(main, config, instances, multi_threaded, block)
   end
 
   # Deploy a module. The actual deploy happens asynchronously
@@ -75,10 +75,20 @@ module Vertx
   # @return [Hash] The JSON config for the verticle
   def Vertx.config
     if !defined? @@j_conf
-      @@j_conf = org.vertx.java.platform.impl.JRubyVerticleFactory.container.getConfig
+      @@j_conf = org.vertx.java.platform.impl.JRubyVerticleFactory.container.config
       @@j_conf = JSON.parse(@@j_conf.encode) if @@j_conf
     end
     @@j_conf
+  end
+
+  # @return [Hash] Get the environment for the verticle
+  def Vertx.env
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.env
+  end
+
+  # @return [Logger] Get the logger for the verticle
+  def Vertx.logger
+    org.vertx.java.platform.impl.JRubyVerticleFactory.container.logger
   end
 
 end
