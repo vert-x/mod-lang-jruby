@@ -204,7 +204,11 @@ def http_method(ssl, method, chunked)
       @tu.check_thread
       body.append_buffer(data)
     end
-    req.response.chunked = chunked
+
+    if method != 'HEAD' && method != 'CONNECT'
+      req.response.chunked = chunked
+    end
+
     req.end_handler do
       @tu.check_thread
       if method != 'HEAD' && method != 'CONNECT'
