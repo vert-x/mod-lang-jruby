@@ -49,7 +49,7 @@ module Vertx
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
     def listen(port, host = "0.0.0.0", &hndlr)
-      @j_del.listen(port, host, ARWrappedHandler.new(hndlr))
+      @j_del.listen(port, host, ARWrappedHandler.new(hndlr) {|j_del| self})
     end
 
     # Close the server. The handler will be called when the close is complete.

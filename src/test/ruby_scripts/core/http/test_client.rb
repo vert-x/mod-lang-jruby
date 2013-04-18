@@ -222,7 +222,9 @@ def http_method(ssl, method, chunked)
       req.response.end
     end
   end
-  @server.listen(8080) do
+  @server.listen(8080) do |err, server|
+    @tu.azzert err == nil
+    @tu.azzert @server == server
     if ssl
       @client.ssl = true
       @client.key_store_path = './src/test/keystores/client-keystore.jks'
