@@ -30,7 +30,10 @@ def test_echo
       @tu.check_thread
       socket.write_buffer(data) # Just echo it back
     }
-  }.listen(8080, "0.0.0.0") {
+  }.listen(8080, "0.0.0.0") { |err, server|
+
+    @tu.check_thread
+    @tu.azzert err == nil
 
     @client.connect(8080, "localhost") { |err, socket|
       @tu.check_thread
@@ -111,7 +114,10 @@ def test_echo_ssl
       @tu.check_thread
       socket.write_buffer(data) # Just echo it back
     }
-  }.listen(8080, "0.0.0.0") {
+  }.listen(8080, "0.0.0.0") { |err, server|
+
+    @tu.check_thread
+    @tu.azzert err == nil
 
     @client.ssl = true
     @client.key_store_path = './src/test/keystores/client-keystore.jks'
@@ -179,7 +185,9 @@ def test_write_str
       @tu.check_thread
       socket.write_buffer(data) # Just echo it back
     }
-  }.listen(8080, "localhost") {
+  }.listen(8080, "localhost") { |err, server|
+    @tu.check_thread
+    @tu.azzert err == nil
     @client.connect(8080, "localhost") { |err, socket|
       @tu.check_thread
       sent = 'some-string'
