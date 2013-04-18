@@ -26,13 +26,13 @@ def test_simple_send
 
   id = EventBus.register_handler(address) do |msg|
     @tu.azzert(msg.body['message'] == json['message'])
-    EventBus.unregister_handler(id)
+    @tu.azzert(EventBus.unregister_handler(id) == EventBus)
     @tu.test_complete
   end
 
   @tu.azzert(id != nil)
 
-  EventBus.send(address, json)
+  @tu.azzert(EventBus.send(address, json) == EventBus)
 end
 
 def test_send_empty
@@ -42,13 +42,13 @@ def test_send_empty
 
   id = EventBus.register_handler(address) do |msg|
     @tu.azzert(msg.body.empty?)
-    EventBus.unregister_handler(id)
+    @tu.azzert(EventBus.unregister_handler(id) == EventBus)
     @tu.test_complete
   end
 
   @tu.azzert(id != nil)
 
-  EventBus.send(address, json)
+  @tu.azzert(EventBus.send(address, json) == EventBus)
 end
 
 def test_reply
@@ -64,11 +64,12 @@ def test_reply
 
   @tu.azzert(id != nil)
 
-  EventBus.send(address, json) do |msg|
+  bus = EventBus.send(address, json) do |msg|
     @tu.azzert(msg.body['cheese'] == reply['cheese'])
-    EventBus.unregister_handler(id)
+    @tu.azzert(EventBus.unregister_handler(id) == EventBus)
     @tu.test_complete
   end
+  @tu.azzert(bus == EventBus)
 
 end
 
@@ -85,12 +86,12 @@ def test_empty_reply
 
   @tu.azzert(id != nil)
 
-  EventBus.send(address, json) do |msg|
+  bus = EventBus.send(address, json) do |msg|
     @tu.azzert(msg.body.empty?)
-    EventBus.unregister_handler(id)
+    @tu.azzert(EventBus.unregister_handler(id) == EventBus)
     @tu.test_complete
   end
-
+  @tu.azzert(bus == EventBus)
 end
 
 def test_send_unregister_send
@@ -103,7 +104,7 @@ def test_send_unregister_send
   id = EventBus.register_handler(address) do |msg|
     @tu.azzert(false, "handler already called") if received
     @tu.azzert(msg.body['message'] == json['message'])
-    EventBus.unregister_handler(id)
+    @tu.azzert(EventBus.unregister_handler(id) == EventBus)
     received = true
     # End test on a timer to give time for other messages to arrive
     Vertx.set_timer(100) { @tu.test_complete }
@@ -112,7 +113,7 @@ def test_send_unregister_send
   @tu.azzert(id != nil)
 
   (1..2).each do
-    EventBus.send(address, json)
+    @tu.azzert(EventBus.send(address, json) == EventBus)
   end
 end
 
@@ -127,13 +128,13 @@ def test_send_multiple_matching_handlers
   (1..num_handlers).each do
     id = EventBus.register_handler(address) do |msg|
       @tu.azzert(msg.body['message'] == json['message'])
-      EventBus.unregister_handler(id)
+      @tu.azzert(EventBus.unregister_handler(id) == EventBus)
       count += 1
       @tu.test_complete if count == num_handlers
     end
   end
 
-  EventBus.publish(address, json)
+  @tu.azzert(EventBus.publish(address, json) == EventBus)
 end
 
 def test_echo_string
@@ -166,10 +167,10 @@ def echo(msg)
 
   id = EventBus.register_handler(address) { |received|
     @tu.check_thread
-    EventBus.unregister_handler(id)
+    @tu.azzert(EventBus.unregister_handler(id) == EventBus)
     received.reply(received.body)
   }
-  EventBus.send(address, msg) { |reply|
+  bus = EventBus.send(address, msg) { |reply|
     if reply.body.is_a? Hash
       reply.body.each do |k, v|
         @tu.azzert(msg[k] == v)
@@ -179,6 +180,7 @@ def echo(msg)
     end
     @tu.test_complete
   }
+  @tu.azzert(bus == EventBus)
 end
 
 def test_reply_of_reply_of_reply
@@ -193,14 +195,15 @@ def test_reply_of_reply_of_reply
     end
   end
 
-  EventBus.send(address, "message") do |reply|
+  bus = EventBus.send(address, "message") do |reply|
     @tu.azzert("reply" == reply.body);
     reply.reply("reply-of-reply") do |reply|
       @tu.azzert("reply-of-reply-of-reply" == reply.body);
-      EventBus.unregister_handler(id)
+      @tu.azzert(EventBus.unregister_handler(id) == EventBus)
       @tu.test_complete
     end
   end
+  @tu.azzert(bus == EventBus)
 end
 
 def vertx_stop

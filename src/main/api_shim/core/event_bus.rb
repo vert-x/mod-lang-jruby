@@ -63,12 +63,14 @@ module Vertx
     # It will be called when the reply from a receiver is received.
     def EventBus.send(address, message, &reply_handler)
       EventBus.send_or_pub(true, address, message, reply_handler)
+      self
     end
 
     # Publish a message on the event bus
     # @param message [Hash] The message to publish
     def EventBus.publish(address, message)
       EventBus.send_or_pub(false, address, message)
+      self
     end
 
     # @private
@@ -85,6 +87,7 @@ module Vertx
       else
         @@j_eventbus.publish(address, message)
       end
+      self
     end
 
     # Register a handler.
@@ -132,6 +135,7 @@ module Vertx
       tuple = @@handler_map.delete(handler_id)
       raise "Cannot find handler for id #{handler_id}" if !tuple
       @@j_eventbus.unregisterHandler(tuple.first, tuple.last)
+      self
     end
 
     # @private
