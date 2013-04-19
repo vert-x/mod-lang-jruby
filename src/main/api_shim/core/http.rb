@@ -356,30 +356,12 @@ module Vertx
       self
     end
 
-    # Write a [Buffer] to the request body.
-    # @param [Buffer] chunk. The buffer to write.
-    # @param [Block] hndlr. The handler will be called when the buffer has actually been written to the wire.
-    # @return [HttpClientRequest] self So multiple operations can be chained.
-    def write_buffer(chunk, &hndlr)
-      if hndlr
-        @j_del.write(chunk._to_java_buffer, ArWrappedHandler.new(hndlr))
-      else
-        @j_del.write(chunk._to_java_buffer)
-      end
-      self
-    end
-
     # Write a [String] to the request body.
     # @param [String] str. The string to write.
     # @param [String] enc. The encoding to use.
-    # @param [Block] hndlr. The handler will be called when the buffer has actually been written to the wire.
     # @return [HttpClientRequest] self So multiple operations can be chained.
-    def write_str(str, enc = "UTF-8", &hndlr)
-      if hndlr
-        @j_del.write(str, enc, ArWrappedHandler.new(hndlr))
-      else
-        @j_del.write(str, enc)
-      end
+    def write_str(str, enc = "UTF-8")
+      @j_del.write(str, enc)
       self
     end
 
@@ -731,30 +713,12 @@ module Vertx
       @trailers
     end
 
-    # Write a buffer to the response. The handler will be called when the buffer has actually been written to the wire.
-    # @param [Buffer] chunk. The buffer to write
-    # @param [Block] hndlr. The handler
-    # @return [HttpServerResponse] self So multiple operations can be chained.
-    def write_buffer(chunk, &hndlr)
-      if hndlr
-        @j_del.write(chunk._to_java_buffer, ARWrappedHandler.new(hndlr))
-      else
-        @j_del.write(chunk._to_java_buffer)
-      end
-      self
-    end
-
     # Write a String to the response. The handler will be called when the String has actually been written to the wire.
     # @param [String] str. The string to write
     # @param [String] enc. Encoding to use.
-    # @param [Block] hndlr. The handler
     # @return [HttpServerResponse] self So multiple operations can be chained.
-    def write_str(str, enc = "UTF-8", &hndlr)
-      if hndlr
-        @j_del.write(str, enc, ARWrappedHandler.new(hndlr))
-      else
-        @j_del.write(str, enc)
-      end
+    def write_str(str, enc = "UTF-8")
+      @j_del.write(str, enc)
       self
     end
 

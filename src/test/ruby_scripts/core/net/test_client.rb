@@ -28,7 +28,7 @@ def test_echo
     @tu.check_thread
     socket.data_handler { |data|
       @tu.check_thread
-      socket.write_buffer(data) # Just echo it back
+      socket.write(data) # Just echo it back
     }
   }.listen(8080, "0.0.0.0") { |err, server|
 
@@ -91,7 +91,7 @@ def test_echo
         (1..sends).each { |i|
           data = TestUtils::gen_buffer(size)
           sent.append_buffer(data)
-          socket.write_buffer(data)
+          socket.write(data)
         }
       }
     }
@@ -113,7 +113,7 @@ def test_echo_ssl
     @tu.check_thread
     socket.data_handler { |data|
       @tu.check_thread
-      socket.write_buffer(data) # Just echo it back
+      socket.write(data) # Just echo it back
     }
   }.listen(8080, "0.0.0.0") { |err, server|
 
@@ -173,7 +173,7 @@ def test_echo_ssl
       (1..sends).each { |i|
         data = TestUtils::gen_buffer(size)
         sent.append_buffer(data)
-        socket.write_buffer(data)
+        socket.write(data)
       }
     }
   }
@@ -185,7 +185,7 @@ def test_write_str
     @tu.check_thread
     socket.data_handler { |data|
       @tu.check_thread
-      socket.write_buffer(data) # Just echo it back
+      socket.write(data) # Just echo it back
     }
   }.listen(8080, "localhost") { |err, server|
     @tu.check_thread

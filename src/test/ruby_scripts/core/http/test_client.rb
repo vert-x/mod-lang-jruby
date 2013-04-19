@@ -213,7 +213,7 @@ def http_method(ssl, method, chunked)
       @tu.check_thread
       if method != 'HEAD' && method != 'CONNECT'
         req.response.put_header('Content-Length', body.length()) if !chunked
-        req.response.write_buffer(body)
+        req.response.write(body)
         if chunked
           req.response.put_trailer('trailer1', 'vtrailer1')
           req.response.put_trailer('trailer2', 'vtrailer2')
@@ -265,7 +265,7 @@ def http_method(ssl, method, chunked)
     request.put_header('header2', 'vheader2')
     request.put_header('Content-Length', sent_buff.length()) if !chunked
 
-    request.write_buffer(sent_buff)
+    request.write(sent_buff)
 
     request.end
   end

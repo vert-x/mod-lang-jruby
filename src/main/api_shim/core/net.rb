@@ -164,7 +164,7 @@ module Vertx
       @j_del = j_socket
 
       @write_handler_id = EventBus.register_simple_handler { |msg|
-        write_buffer(msg.body)
+        write(msg.body)
       }
       @j_del.closeHandler(Proc.new {
         EventBus.unregister_handler(@write_handler_id)
@@ -172,29 +172,11 @@ module Vertx
       })
     end
 
-    # Write a {Buffer} to the socket. The handler will be called when the buffer has actually been written to the wire.
-    # @param [Buffer] buff. The buffer to write.
-    # @param [Block] compl. The handler to call on completion.
-    def write_buffer(buff, &compl)
-      j_buff = buff._to_java_buffer
-      if compl == nil
-        @j_del.write(j_buff)
-      else
-        @j_del.write(j_buff, ARWrappedHandler.new(compl))
-      end
-      self
-    end
-
     # Write a String to the socket. The handler will be called when the string has actually been written to the wire.
     # @param [String] str. The string to write.
     # @param [String] enc. The encoding to use.
-    # @param [Block] compl. The handler to call on completion.
-    def write_str(str, enc = "UTF-8", &compl)
-      if (compl == nil)
-        @j_del.write(str, enc)
-      else
-        @j_del.write(str, enc, ARWrappedHandler.new(compl))
-      end
+    def write_str(str, enc = "UTF-8")
+      @j_del.write(str, enc)
       self
     end
 
