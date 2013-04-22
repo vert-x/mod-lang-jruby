@@ -49,9 +49,24 @@ module Vertx
   # ASAP after this event has been processed
   # @param [Proc] proc a proc representing the code that will be run ASAP
   # @param [Block] hndlr a block representing the code that will be run ASAP
-  def Vertx.run_on_loop(proc = nil, &hndlr)
+  def Vertx.run_on_context(proc = nil, &hndlr)
     hndlr = proc if proc
-    @@j_vertx.runOnLoop(hndlr)
+    @@j_vertx.runOnContext(hndlr)
+  end
+
+  def Vertx.current_context
+    Context.new(@@j_vertx.currentContext())
+  end
+
+  class Context
+    # @private
+    def initialize(j_del)
+      @j_del = j_del
+    end
+
+    def run_on_context(&hndlr)
+      @j_del.runOnContext(hndlr)
+    end
   end
 
 end
