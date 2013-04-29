@@ -342,7 +342,7 @@ module Vertx
     # Hash of headers for the request
     def headers
       if !@headers
-        @headers = @j_del.headers
+        @headers = MultiMap.new(@j_del.headers)
       end
       @headers
     end
@@ -477,28 +477,19 @@ module Vertx
     end
 
     # Get all the headers in the response.
-    # If the response contains multiple headers with the same key, the values
-    # will be concatenated together into a single header with the same key value, with each value separated by a comma,
-    # as specified by {http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2}.
-    # @return [Hash]. A Hash of headers.
+    # @return [MultiMap]. The headers
     def headers
       if !@headers
-        @headers = @j_del.headers
+        @headers = MultiMap.new(@j_del.headers)
       end
       @headers
     end
 
     # Get all the trailers in the response.
-    # If the response contains multiple trailers with the same key, the values
-    # will be concatenated together into a single header with the same key value, with each value separated by a comma,
-    # as specified by {http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2}.
-    # Trailers will only be available in the response if the server has sent a HTTP chunked response where headers have
-    # been inserted by the server on the last chunk. In such a case they won't be available on the client until the last chunk has
-    # been received.
-    # @return [Hash]. A Hash of trailers.
+    # @return [MultiMap]. The trailers
     def trailers
       if !@trailers
-        @trailers = @j_del.trailers
+        @trailers = MultiMap.new(@j_del.trailers)
       end
       @trailers
     end
@@ -557,10 +548,10 @@ module Vertx
       @j_del.query
     end
 
-    # @return [Hash] The request parameters
+    # @return [MultiMap] The request parameters
     def params
       if !@params
-        @params = @j_del.params
+        @params = MultiMap.new(@j_del.params)
       end
       @params
     end
@@ -571,10 +562,10 @@ module Vertx
       @resp
     end
 
-    # @return [Hash] The request headers
+    # @return [MultiMap] The request headers
     def headers
       if !@headers
-        @headers = @j_del.headers
+        @headers = MultiMap.new(@j_del.headers)
       end
       @headers
     end
@@ -679,10 +670,10 @@ module Vertx
       end
     end
 
-    # @return [Hash] The response headers
+    # @return [MultiMap] The response headers
     def headers
       if !@headers
-        @headers = @j_del.headers
+        @headers = MultiMap.new(@j_del.headers)
       end
       @headers
     end
@@ -708,7 +699,7 @@ module Vertx
     # The response trailers
     def trailers
       if !@trailers
-        @trailers = @j_del.trailers
+        @trailers = MultiMap.new(@j_del.trailers)
       end
       @trailers
     end
@@ -837,6 +828,15 @@ module Vertx
     # 404 to the client.
     def reject
       @j_del.reject
+    end
+
+    # Return the headers of the handshake request
+    # @return [MultiMap] The handshake headers
+    def headers
+      if !@headers
+        @headers = MultiMap.new(@j_del.headers)
+      end
+      @headers
     end
 
     # The path the websocket connect was attempted at.
@@ -1031,5 +1031,115 @@ module Vertx
       @j_del.noMatch { |j_req| hndlr.call(HttpServerRequest.new(j_req)) }
     end
 
+  end
+
+
+  # A map which can hold multiple values for one name / key
+  #
+  # @author Norman Maurer
+  class MultiMap
+
+    # @private
+    def initialize(j_map)
+      @j_map = j_map
+    end
+
+    # Returns the value of with the specified name.  If there are
+    # more than one values for the specified name, the first value is returned.
+    #
+    # @param name The name of the header to search
+    # @return The first header value or nil if there is no such entry
+    def get(name)
+      @j_map.get(name)
+    end
+
+    # Returns the value of with the specified name.  If there are
+    # more than one values for the specified name, the first value is returned.
+    #
+    # @param name The name of the header to search
+    # @return The first header value or nil if there is no such entry
+    def [](name)
+      @j_map.get(name)
+    end
+
+
+    # Set a value with the specified name and value.
+    #
+    # @param name The name
+    # @param value The value being added
+    # @return self
+    def []=(name, value)
+      @j_map.set(name, value)
+      self
+    end
+
+    # Returns the values with the specified name
+    #
+    # @param name The name to search
+    # @return [Array] A immutable array of values which will be empty if no values
+    #         are found
+    def get_all(name)
+      @j_map.getAll(name).to_a
+    end
+
+    # Returns true if an entry with the given name was found
+    def contains(name)
+      @j_map.contains(name)
+    end
+
+    # Returns true if the map is empty
+    def is_empty
+      @j_map.isEmpty()
+    end
+
+    # Return a Set which holds all names of the entries
+    #
+    # @return [Set] The set which holds all names or an empty set if it is empty
+    def names
+     @j_map.names()
+    end
+
+
+    # Adds a new value with the specified name and value.
+    #
+    # @param name The name
+    # @param value The value being added
+    # @return self
+    def add(name, value)
+      @j_map.add(name, value)
+      self
+    end
+
+    # Set a value with the specified name and value.
+    #
+    # @param name The name
+    # @param value The value being added
+    # @return self
+    def set(name, value)
+      @j_map.set(name, value)
+      self
+    end
+
+    # Remove the values with the given name
+    #
+    # @param name The name
+    # @return self
+    def remove(name)
+      @j_map.remove(name)
+      self
+    end
+
+    # Remove all entries
+    #
+    # @return self
+    def clear
+      @j_map.clear()
+      self
+    end
+
+    # Return the number of names in this instance
+    def size
+      @j_map.size()
+    end
   end
 end

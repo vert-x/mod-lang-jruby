@@ -197,6 +197,16 @@ def http_method(ssl, method, chunked)
     @tu.azzert(req.headers['header2'] == 'vheader2')
     @tu.azzert(req.params['param1'] == 'vparam1')
     @tu.azzert(req.params['param2'] == 'vparam2')
+
+    headers = req.headers
+    @tu.azzert(headers.contains('header1'))
+    @tu.azzert(headers.contains('header2'))
+    @tu.azzert(headers.contains('header3'))
+    @tu.azzert(!headers.is_empty)
+
+    headers.remove('header3')
+    @tu.azzert(!headers.contains('header3'))
+
     req.response.put_header('rheader1', 'vrheader1')
     req.response.put_header('rheader2', 'vrheader2')
     body = Buffer.create()
@@ -256,6 +266,8 @@ def http_method(ssl, method, chunked)
             @tu.azzert('vtrailer2' == resp.trailers['trailer2'])
           end
         end
+        resp.headers.clear
+        @tu.azzert(resp.headers.is_empty)
         @tu.test_complete
       end
     end
@@ -264,6 +276,7 @@ def http_method(ssl, method, chunked)
     request.put_header('header1', 'vheader1')
     request.put_header('header2', 'vheader2')
     request.put_header('Content-Length', sent_buff.length()) if !chunked
+    request.headers.add('header3', 'vheader3_1').add('header3', 'vheader3')
 
     request.write(sent_buff)
 
