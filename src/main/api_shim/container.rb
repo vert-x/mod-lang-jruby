@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'core/wrapped_handler'
+
 module Vertx
 
   # Deploy a verticle. The actual deploy happens asynchronously
@@ -24,6 +26,9 @@ module Vertx
     if config
       json_str = JSON.generate(config)
       config = org.vertx.java.core.json.JsonObject.new(json_str)
+    end
+    if block
+      block = ARWrappedHandler.new(block)
     end
     org.vertx.java.platform.impl.JRubyVerticleFactory.container.deployVerticle(main, config, instances, block)
   end
@@ -38,6 +43,9 @@ module Vertx
       json_str = JSON.generate(config)
       config = org.vertx.java.core.json.JsonObject.new(json_str)
     end
+    if block
+      block = ARWrappedHandler.new(block)
+    end
     org.vertx.java.platform.impl.JRubyVerticleFactory.container.deployWorkerVerticle(main, config, instances, multi_threaded, block)
   end
 
@@ -51,18 +59,27 @@ module Vertx
       json_str = JSON.generate(config)
       config = org.vertx.java.core.json.JsonObject.new(json_str)
     end
+    if block
+      block = ARWrappedHandler.new(block)
+    end
     org.vertx.java.platform.impl.JRubyVerticleFactory.container.deployModule(module_name, config, instances, block)
   end
 
   # Undeploy a verticle
   # @param id [String] The unique id of the deployment
   def Vertx.undeploy_verticle(id, &block)
+    if block
+      block = ARWrappedHandler.new(block)
+    end
     org.vertx.java.platform.impl.JRubyVerticleFactory.container.undeployVerticle(id, block)
   end
 
   # Undeploy a module
   # @param id [String] The unique id of the deployment
   def Vertx.undeploy_module(id, &block)
+    if block
+      block = ARWrappedHandler.new(block)
+    end
     org.vertx.java.platform.impl.JRubyVerticleFactory.container.undeployModule(id, block)
   end
 

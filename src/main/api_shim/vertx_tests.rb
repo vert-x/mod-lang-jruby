@@ -1,7 +1,8 @@
 VertxAssert = Java::OrgVertxTesttools::VertxAssert
 
-def init_tests(top)
-  VertxAssert.initialize(org.vertx.java.platform.impl.JRubyVerticleFactory.vertx)
+VertxAssert.initialize(org.vertx.java.platform.impl.JRubyVerticleFactory.vertx)
+
+def start_tests(top)
   method_name = Vertx.config['methodName']
   self.send(method_name)
 end
