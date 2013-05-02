@@ -52,6 +52,13 @@ module Vertx
       input(data)
     end
 
+    # Convert it to a Proc
+    def to_proc
+      return Proc.new do |data|
+        input(data)
+      end
+    end
+
     # This method is called to provide the parser with data.
     # @param [Buffer] data. Input data to the parser.
     def input(data)

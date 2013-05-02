@@ -1120,6 +1120,16 @@ module Vertx
       self
     end
 
+    # Set a value with the specified name and value.
+    #
+    # @param name The name
+    # @param value The value being added
+    # @return self
+    def set_headers(headers)
+      @j_map.set(headers._j_map)
+      self
+    end
+
     # Remove the values with the given name
     #
     # @param name The name
@@ -1140,6 +1150,10 @@ module Vertx
     # Return the number of names in this instance
     def size
       @j_map.size()
+    end
+
+    def _j_map
+      @j_map
     end
   end
 end
