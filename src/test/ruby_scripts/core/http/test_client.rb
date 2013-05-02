@@ -278,6 +278,17 @@ def http_method(ssl, method, chunked)
     request.put_header('Content-Length', sent_buff.length()) if !chunked
     request.headers.add('header3', 'vheader3_1').add('header3', 'vheader3')
 
+    size = request.headers.size()
+    names = request.headers.names()
+    names_count = 0
+    @tu.azzert(size == names.count())
+
+    request.headers.each do |k, v|
+      names_count = names_count + 1
+      @tu.azzert(request.headers.get_all(k) == v)
+    end
+    @tu.azzert(size == names_count)
+
     request.write(sent_buff)
 
     request.end
