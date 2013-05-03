@@ -528,6 +528,13 @@ module Vertx
       @resp = HttpServerResponse.new(@j_del.response)
     end
 
+    def version
+      if !@vrsn
+        @vrsn = @j_del.version.toString
+      end
+      @vrsn
+    end
+                           4
     # @return [String] The HTTP method, one of HEAD, OPTIONS, GET, POST, PUT, DELETE, CONNECT, TRACE
     def method
       @j_del.method
