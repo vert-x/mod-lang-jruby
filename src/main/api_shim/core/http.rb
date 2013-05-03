@@ -1051,10 +1051,16 @@ module Vertx
       @j_map = j_map
     end
 
-    # Call the handler for each header and pass in the headername and values
+    # Call the handler for each header name and its value. If there are multiple values are stored for
+    # a header name it will be called for each of them
     #
     def each(&hndlr)
-      names.each { |name| hndlr.call(name, get_all(name))}
+      names.each do |name|
+        values = @j_map.getAll(name)
+        for v in values
+          hndlr.call(name, v)
+        end
+      end
     end
 
     # Returns the value of with the specified name.  If there are
