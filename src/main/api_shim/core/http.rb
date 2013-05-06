@@ -1144,8 +1144,8 @@ module Vertx
     # @param name The name
     # @param value The value being added
     # @return self
-    def set_headers(headers)
-      @j_map.set(headers._j_map)
+    def set_all(map)
+      @j_map.set(map._j_map)
       self
     end
 
