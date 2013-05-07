@@ -622,12 +622,6 @@ module Vertx
       @j_del = j_del
     end
 
-    # Set the status code of the response. Default is 200
-    # @param [FixNum] val. The HTTP status code.
-    def status_code=(val)
-      @j_del.statusCode = val
-    end
-
     # Get or set the status code
     def status_code(val = nil)
       if val
