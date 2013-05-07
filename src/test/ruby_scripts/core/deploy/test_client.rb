@@ -18,12 +18,11 @@ require "test_utils"
 
 @tu = TestUtils.new
 
-@handler_id = nil
-
 def test_deploy
 
-  @handler_id = EventBus.register_handler("test-handler") do |message|
-    @tu.test_complete if "started" == message.body
+  EventBus.register_handler("test-handler") do |message|
+    @tu.azzert "started" == message.body
+    @tu.test_complete
   end
 
   conf = {'foo' => 'bar'}
@@ -31,21 +30,63 @@ def test_deploy
   Vertx.deploy_verticle("core/deploy/child.rb", conf)
 end
 
+def test_deploy2
+
+  Vertx.deploy_verticle("core/deploy/child2.rb") do |err, id|
+    @tu.azzert(err == nil)
+    @tu.azzert(id != nil)
+    @tu.test_complete
+  end
+end
+
+def test_deploy_fail
+
+  Vertx.deploy_verticle("core/deploy/notexists.rb") do |err, id|
+    @tu.azzert(err != nil)
+    @tu.azzert(id == nil)
+    @tu.test_complete
+  end
+end
+
 def test_undeploy
 
-  @handler_id = EventBus.register_handler("test-handler") do |message|
+  EventBus.register_handler("test-handler") do |message|
     @tu.test_complete if "stopped" == message.body
   end
 
   conf = {'foo' => 'bar'}
-  Vertx.deploy_verticle("core/deploy/child.rb", conf) { |id|
+  Vertx.deploy_verticle("core/deploy/child.rb", conf) do |err, id|
+    @tu.azzert(err == nil)
+    @tu.azzert(id != nil)
     Vertx.undeploy_verticle(id)
-  }
+  end
+
+end
+
+def test_undeploy2
+
+  conf = {'foo' => 'bar'}
+  Vertx.deploy_verticle("core/deploy/child2.rb") do |err, id|
+    @tu.azzert(err == nil)
+    @tu.azzert(id != nil)
+    Vertx.undeploy_verticle(id) do |err|
+      @tu.azzert(err == nil)
+      @tu.test_complete
+    end
+  end
+
+end
+
+def test_undeploy_fail
+
+  Vertx.undeploy_verticle('qwdqwd') do |err|
+    @tu.azzert(err != nil)
+    @tu.test_complete
+  end
 
 end
 
 def vertx_stop
-  EventBus.unregister_handler(@handler_id)
   @tu.unregister_all
   @tu.app_stopped
 end
