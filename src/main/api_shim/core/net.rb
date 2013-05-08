@@ -210,7 +210,7 @@ module Vertx
     end
 
     # Return the ipaddress to which the remote end of the socket is bound
-    def remote_ipaddr
+    def remote_addr
       @j_del.remoteAddress().getAddress().getHostAddress
     end
 
@@ -220,7 +220,7 @@ module Vertx
     end
 
     # Return the ipaddress to which the local end of the socket is bound
-    def local_ipaddr
+    def local_addr
       @j_del.localAddress().getAddress().getHostAddress()
     end
 
