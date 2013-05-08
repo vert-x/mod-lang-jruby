@@ -26,6 +26,10 @@ def test_echo
 
   @server.connect_handler { |socket|
     @tu.check_thread
+    @tu.azzert socket.local_addr != nil
+    @tu.azzert socket.local_port > -1
+    @tu.azzert socket.remote_addr != nil
+    @tu.azzert socket.remote_port > -1
     socket.data_handler { |data|
       @tu.check_thread
       socket.write(data) # Just echo it back
@@ -39,6 +43,10 @@ def test_echo
     @client.connect(8080, "localhost") { |err, socket|
       @tu.check_thread
       @tu.azzert err == nil
+      @tu.azzert socket.local_addr != nil
+      @tu.azzert socket.local_port > -1
+      @tu.azzert socket.remote_addr != nil
+      @tu.azzert socket.remote_port > -1
       sends = 10
       size = 100
 
@@ -113,6 +121,10 @@ def test_echo_ssl
     @tu.check_thread
     socket.data_handler { |data|
       @tu.check_thread
+      @tu.azzert socket.local_addr != nil
+      @tu.azzert socket.local_port > -1
+      @tu.azzert socket.remote_addr != nil
+      @tu.azzert socket.remote_port > -1
       socket.write(data) # Just echo it back
     }
   }.listen(8080, "0.0.0.0") { |err, server|
@@ -138,6 +150,10 @@ def test_echo_ssl
 
       socket.data_handler { |data|
         @tu.check_thread
+        @tu.azzert socket.local_addr != nil
+        @tu.azzert socket.local_port > -1
+        @tu.azzert socket.remote_addr != nil
+        @tu.azzert socket.remote_port > -1
         received.append_buffer(data)
 
         if received.length == sends * size
@@ -185,6 +201,11 @@ def test_write_str
     @tu.check_thread
     socket.data_handler { |data|
       @tu.check_thread
+      @tu.azzert socket.local_addr != nil
+      @tu.azzert socket.local_port > -1
+      @tu.azzert socket.remote_addr != nil
+      @tu.azzert socket.remote_port > -1
+
       socket.write(data) # Just echo it back
     }
   }.listen(8080, "localhost") { |err, server|
@@ -193,6 +214,10 @@ def test_write_str
     @tu.azzert @server == server
     @client.connect(8080, "localhost") { |err, socket|
       @tu.check_thread
+      @tu.azzert socket.local_addr != nil
+      @tu.azzert socket.local_port > -1
+      @tu.azzert socket.remote_addr != nil
+      @tu.azzert socket.remote_port > -1
       sent = 'some-string'
       received = Buffer.create()
 

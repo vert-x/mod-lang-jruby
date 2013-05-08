@@ -209,6 +209,25 @@ module Vertx
       @write_handler_id
     end
 
+    # Return the ipaddress to which the remote end of the socket is bound
+    def remote_ipaddr
+      @j_del.remoteAddress().getAddress().getHostAddress
+    end
+
+    # Return the port to which the remote end of the socket is bound
+    def remote_port
+      @j_del.remoteAddress().getPort()
+    end
+
+    # Return the ipaddress to which the local end of the socket is bound
+    def local_ipaddr
+      @j_del.localAddress().getAddress().getHostAddress()
+    end
+
+    # Return the port to which the local end of the socket is bound
+    def local_port
+      @j_del.localAddress().getPort()
+    end
   end
 end
 
