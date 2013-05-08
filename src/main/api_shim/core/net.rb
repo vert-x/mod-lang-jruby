@@ -16,6 +16,8 @@ require 'core/streams'
 require 'core/ssl_support'
 require 'core/tcp_support'
 require 'core/wrapped_handler'
+require 'socket'
+
 
 module Vertx
 
@@ -163,7 +165,8 @@ module Vertx
     # @private
     def initialize(j_socket)
       @j_del = j_socket
-
+      @local_addr = nil
+      @remote_addr = nil
       @write_handler_id = EventBus.register_simple_handler { |msg|
         write(msg.body)
       }
@@ -209,24 +212,21 @@ module Vertx
       @write_handler_id
     end
 
-    # Return the ipaddress to which the remote end of the socket is bound
-    def remote_addr
-      @j_del.remoteAddress().getAddress().getHostAddress
+    # Return the Addrinfo to which the remote end of the socket is bound
+    def remote_address
+      if !@remote_addr
+        @remote_addr = Addrinfo.tcp(@j_del.remoteAddress().getAddress().getHostAddress(), @j_del.remoteAddress().getPort())
+      end
+      @remote_addr
     end
 
-    # Return the port to which the remote end of the socket is bound
-    def remote_port
-      @j_del.remoteAddress().getPort()
-    end
 
-    # Return the ipaddress to which the local end of the socket is bound
-    def local_addr
-      @j_del.localAddress().getAddress().getHostAddress()
-    end
-
-    # Return the port to which the local end of the socket is bound
-    def local_port
-      @j_del.localAddress().getPort()
+    # Return the Addrinfo to which the local end of the socket is bound
+    def local_address
+      if !@local_addr
+        @local_addr = Addrinfo.tcp(@j_del.localAddress().getAddress().getHostAddress(), @j_del.localAddress().getPort())
+      end
+      @local_addr
     end
   end
 end
