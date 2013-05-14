@@ -534,7 +534,7 @@ module Vertx
       end
       @vrsn
     end
-                           4
+
     # @return [String] The HTTP method, one of HEAD, OPTIONS, GET, POST, PUT, DELETE, CONNECT, TRACE
     def method
       @j_del.method
@@ -575,6 +575,21 @@ module Vertx
         @headers = MultiMap.new(@j_del.headers)
       end
       @headers
+    end
+
+    # Returns a map of all form attributes which was found in the request. Be aware that this message should only get
+    # called after the endHandler was notified as the map will be filled on-the-fly.
+    def form_attributes
+      @j_del.formAttributes()
+    end
+
+    # Set the upload handler. The handler will get notified once a new file upload was received and so allow to
+    # get notified by the upload in progress.
+    def upload_handler(&hndlr)
+      @j_del.uploadHandler do |j_upload|
+          hndlr.call(HttpServerFileUpload.new(j_upload))
+      end
+      self
     end
 
     # Set a handler to receive the entire body in one go - do not use this for large bodies
@@ -1167,6 +1182,56 @@ module Vertx
 
     def _j_map
       @j_map
+    end
+  end
+
+  # An Upload which was found in the HttpServerMultipartRequest while handling it.
+  #
+  # @author Norman Maurer
+  #
+  class HttpServerFileUpload
+
+    include ReadStream
+
+    # @private
+    def initialize(j_del)
+      @j_del = j_del
+    end
+
+    # Stream the content of this upload to the given filename.
+    def stream_to_file_system(filename)
+      @j_del.streamToFileSystem(filename)
+      self
+    end
+
+    # Returns the filename of the attribute
+    def filename
+      @j_del.filename()
+    end
+
+    # Returns the name of the attribute
+    def name
+      @j_del.name()
+    end
+
+   # Returns the contentType for the upload
+    def content_type
+      @j_del.contentType()
+    end
+
+    #Returns the contentTransferEncoding for the upload
+    def content_transfer_encoding
+      @j_del.contentTransferEncoding()
+    end
+
+    # Returns the charset for the upload
+    def charset
+      @j_del.charset().toString()
+    end
+
+    #Returns the size of the upload (in bytes)
+    def size
+      @j_del.size()
     end
   end
 end

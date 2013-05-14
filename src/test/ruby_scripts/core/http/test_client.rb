@@ -172,6 +172,89 @@ def test_patch_ssl_chunked
   http_method(true, "PATCH", true)
 end
 
+def test_form_file_upload
+  content = "Vert.x rocks!"
+  @server.request_handler do |req|
+    if req.uri == '/form'
+      req.response.chunked = true
+      req.upload_handler do |event|
+        event.data_handler do |buffer|
+          @tu.azzert(content == buffer.to_s())
+        end
+      end
+      req.end_handler do
+        attrs = req.form_attributes
+        @tu.azzert(attrs.delete('name') == 'file')
+        @tu.azzert(attrs.delete('filename') == 'tmp-0.txt')
+        @tu.azzert(attrs.delete('Content-Type') == 'image/gif')
+        req.response.end()
+      end
+    end
+  end
+  @server.listen(8080) do |err, server|
+    @tu.azzert err == nil
+    @client.port = 8080
+    req = @client.post("/form") do |resp|
+      # assert the response
+      @tu.azzert(200 == resp.status_code)
+      resp.body_handler do |body|
+        @tu.azzert(0 == body.length)
+      end
+      @tu.test_complete()
+    end
+    boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO"
+    buffer = Buffer.create()
+    b =
+        "--" + boundary + "\r\n" +
+            "Content-Disposition: form-data; name=\"file\"; filename=\"tmp-0.txt\"\r\n" +
+            "Content-Type: image/gif\r\n" +
+            "\r\n" +
+            content + "\r\n" +
+            "--" + boundary + "--\r\n"
+
+    buffer.append_str(b)
+    req.put_header('content-length', buffer.length)
+    req.put_header('content-type', 'multipart/form-data; boundary=' + boundary)
+    req.write(buffer).end()
+  end
+end
+
+def test_form_upload_attributes
+  @server.request_handler do |req|
+    if req.uri == '/form'
+      req.response.chunked = true
+      req.upload_handler do |event|
+        event.data_handler do |buffer|
+          @tu.azzert(false)
+        end
+      end
+      req.end_handler do
+        attrs = req.form_attributes
+        @tu.azzert(attrs.delete('framework') == 'vertx')
+        @tu.azzert(attrs.delete('runson') == 'jvm')
+        req.response.end()
+      end
+    end
+  end
+  @server.listen(8080) do |err, server|
+    @tu.azzert err == nil
+    @client.port = 8080
+    req = @client.post("/form") do |resp|
+      # assert the response
+      @tu.azzert(200 == resp.status_code)
+      resp.body_handler do |body|
+        @tu.azzert(0 == body.length)
+      end
+      @tu.test_complete()
+    end
+    buffer = Buffer.create()
+    buffer.append_str('framework=vertx&runson=jvm')
+    req.put_header('content-length', buffer.length)
+    req.put_header('content-type', 'application/x-www-form-urlencoded')
+    req.write(buffer).end()
+  end
+end
+
 def http_method(ssl, method, chunked)
 
   if ssl

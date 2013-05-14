@@ -179,4 +179,12 @@ public class RubyHttpTest extends TestBase {
   public void test_patch_ssl_chunked() {
     startTest(getMethodName());
   }
+
+  public void test_form_file_upload() {
+    startTest(getMethodName());
+  }
+
+  public void test_form_upload_attributes() {
+    startTest(getMethodName());
+  }
 }
