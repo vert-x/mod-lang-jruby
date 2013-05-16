@@ -85,6 +85,7 @@ uploadArchives {
 
 def configurePom(def pom) {
 	pom.project {
+    name rootProject.name
 		description 'Vert.x module that provides Ruby support using JRuby'
 		inceptionYear '2013'
 		packaging 'jar'

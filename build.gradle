@@ -55,7 +55,7 @@ dependencies {
   provided "io.vertx:vertx-core:$vertxVersion"
   provided "io.vertx:vertx-platform:$vertxVersion"
 
-  testCompile( "io.vertx:vertx-testframework:$vertxVersion" ) {
+  testCompile( "io.vertx:vertx-testframework:$testFrameworkVersion" ) {
     transitive = false
   }
   testCompile  "junit:junit:$junitVersion"

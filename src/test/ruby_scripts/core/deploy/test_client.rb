@@ -65,7 +65,6 @@ end
 
 def test_undeploy2
 
-  conf = {'foo' => 'bar'}
   Vertx.deploy_verticle("core/deploy/child2.rb") do |err, id|
     @tu.azzert(err == nil)
     @tu.azzert(id != nil)
