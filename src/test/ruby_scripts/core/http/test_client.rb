@@ -184,9 +184,9 @@ def test_form_file_upload
       end
       req.end_handler do
         attrs = req.form_attributes
-        @tu.azzert(attrs.delete('name') == 'file')
-        @tu.azzert(attrs.delete('filename') == 'tmp-0.txt')
-        @tu.azzert(attrs.delete('Content-Type') == 'image/gif')
+        @tu.azzert(attrs['name'] == 'file')
+        @tu.azzert(attrs['filename'] == 'tmp-0.txt')
+        @tu.azzert(attrs['Content-Type'] == 'image/gif')
         req.response.end()
       end
     end
@@ -230,8 +230,8 @@ def test_form_upload_attributes
       end
       req.end_handler do
         attrs = req.form_attributes
-        @tu.azzert(attrs.delete('framework') == 'vertx')
-        @tu.azzert(attrs.delete('runson') == 'jvm')
+        @tu.azzert(attrs['framework'] == 'vertx')
+        @tu.azzert(attrs['runson'] == 'jvm')
         req.response.end()
       end
     end
