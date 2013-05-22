@@ -735,9 +735,14 @@ module Vertx
     # Tell the kernel to stream a file directly from disk to the outgoing connection, bypassing userspace altogether
     # (where supported by the underlying operating system. This is a very efficient way to serve files.
     # @param [String] path. Path to file to send.
+    # @param [String] not_found_file Path to file containing 404 resource in case resource can't be found
     # @return [HttpServerResponse] self So multiple operations can be chained.
-    def send_file(path)
-      @j_del.sendFile(path)
+    def send_file(path, not_found_file)
+      if !not_found_file
+        @j_del.sendFile(path)
+      else
+        @j_del.sendFile(path, not_found_file)
+      end
       self
     end
 
