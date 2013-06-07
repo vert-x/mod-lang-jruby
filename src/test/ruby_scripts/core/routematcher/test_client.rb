@@ -20,7 +20,7 @@ require "test_utils"
 
 @server = HttpServer.new
 @rm = RouteMatcher.new
-@server.request_handler(&@rm.to_proc)
+@server.request_handler(@rm)
 
 @client = HttpClient.new
 @client.port = 8080;

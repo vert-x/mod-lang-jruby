@@ -34,8 +34,12 @@ module Vertx
     # Set the HTTP request handler for the server.
     # As HTTP requests arrive on the server a new {HttpServerRequest} instance will be created and passed to the handler.
     # @param [Block] hndlr A block to be used as the handler
-    def request_handler(&hndlr)
-      @j_del.requestHandler { |j_del| hndlr.call(HttpServerRequest.new(j_del)) }
+    def request_handler(rm = nil, &hndlr)
+      if (rm && (rm.is_a? RouteMatcher))
+        @j_del.requestHandler { |j_del| rm.input(HttpServerRequest.new(j_del))}
+      else
+        @j_del.requestHandler { |j_del| hndlr.call(HttpServerRequest.new(j_del)) }
+      end
       self
     end
 
@@ -892,13 +896,6 @@ module Vertx
   class RouteMatcher
     def initialize
       @j_del = org.vertx.java.core.http.RouteMatcher.new
-    end
-
-    # Convert it to a Proc
-    def to_proc
-      return Proc.new do |request|
-        input(request)
-      end
     end
 
     # This method is called to provide the matcher with data.
