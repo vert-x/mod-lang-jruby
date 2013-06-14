@@ -154,7 +154,7 @@ task yardoc(type:Exec) {
       "--markup-provider", "kramdown",
       "--readme", "$rootDir/README.md",
       "--output-dir","${project.buildDir}/docs/ruby/api",
-      "src/main/ruby/**/*.rb", "src/main/ruby_scripts/**/*.rb",
+      "src/main/api_shim/**/*.rb",
       "-", "$rootDir/LICENSE.txt" ]
 
   if( System.properties['os.name'].toLowerCase().contains('windows') ) {
