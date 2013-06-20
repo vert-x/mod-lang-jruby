@@ -50,6 +50,7 @@ module Vertx
     # Instruct the server to listen for incoming connections.
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
+    # @param [Block] hndlr. The handler will be called when the server is listening or a failure occurred.
     def listen(port, host = "0.0.0.0", &hndlr)
       @j_del.listen(port, host, ARWrappedHandler.new(hndlr) {|j_del| self})
       self
@@ -90,7 +91,8 @@ module Vertx
     # handler.
     # @param [FixNum] port. The port to connect to.
     # @param [String] host. The host or ip address to connect to.
-    # @param [Block] hndlr A block to be used as the handler
+    # @param [Block] hndlr A block to be used as the handler. The handler will be called with an exception or the
+    # {NetSocket}
     # @return [NetClient] A reference to self so invocations can be chained
     def connect(port, host = "localhost", &hndlr)
       hndlr = ARWrappedHandler.new(hndlr) { |j_socket| NetSocket.new(j_socket) }

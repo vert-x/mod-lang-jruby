@@ -19,7 +19,7 @@ require 'core/wrapped_handler'
 
 module Vertx
 
-  # An HTTP and websockets server
+  # An HTTP and WebSockets server
   #
   # @author {http://tfox.org Tim Fox}
   class HttpServer
@@ -43,8 +43,9 @@ module Vertx
       self
     end
 
-    # Set the websocket handler for the server.
-    # As websocket requests arrive on the server and are accepted a new {WebSocket} instance will be created and passed to the handler.
+    # Set the WebSocket handler for the server.
+    # As WebSocket requests arrive on the server and are accepted a new {WebSocket} instance will be created and
+    # passed to the handler.
     # @param [Block] hndlr A block to be used as the handler
     def websocket_handler(&hndlr)
       @j_del.websocketHandler do |param|
@@ -56,6 +57,7 @@ module Vertx
     # Instruct the server to listen for incoming connections.
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
+    # @param [Block] hndlr The handler will be called when the server is listening, or it failed to listen
     def listen(port, host = "0.0.0.0", &hndlr)
       @j_del.listen(port, host, ARWrappedHandler.new(hndlr) { |j_del| self })
     end
@@ -79,7 +81,7 @@ module Vertx
   # A client maintains a pool of connections to a specific host, at a specific port. The HTTP connections can act
   # as pipelines for HTTP requests.
   # It is used as a factory for {HttpClientRequest} instances which encapsulate the actual HTTP requests. It is also
-  # used as a factory for HTML5 {WebSocket websockets}.
+  # used as a factory for {WebSocket WebSockets}.
   #
   # @author {http://tfox.org Tim Fox}
   class HttpClient
@@ -182,9 +184,9 @@ module Vertx
       end
     end
 
-    # Attempt to connect a websocket to the specified URI.
+    # Attempt to connect a WebSocket to the specified URI.
     # The connect is done asynchronously and the handler is called with a  {WebSocket} on success.
-    # @param [String] uri. A relative URI where to connect the websocket on the host, e.g. /some/path
+    # @param [String] uri. A relative URI where to connect the WebSocket on the host, e.g. /some/path
     # @param [Block] hndlr. The handler to be called with the {WebSocket}
     def connect_web_socket(uri, &hndlr)
       @j_del.connectWebsocket(uri) { |j_ws| hndlr.call(WebSocket.new(j_ws)) }
@@ -317,22 +319,6 @@ module Vertx
   #
   # This class supports both chunked and non-chunked HTTP.
   #
-  # An example of using this class is as follows:
-  #
-  # @example
-  #
-  #   req = httpClient.post("/some-url") do |response|
-  #     puts "Got response #{response.status_code}"
-  #   end
-  #
-  #   req.put_header("some-header", "hello")
-  #
-  #   req.chunked = true
-  #   req.write(Buffer.create_from_str("chunk of body 1");
-  #   req.write(Buffer.create_from_str("chunk of body 2");
-  #
-  #   req.end # This actually sends the request
-  #
   # @author {http://tfox.org Tim Fox}
   class HttpClientRequest
 
@@ -343,7 +329,7 @@ module Vertx
       @j_del = j_del
     end
 
-    # Hash of headers for the request
+    # MultiMap of headers for the request
     def headers
       if !@headers
         @headers = MultiMap.new(@j_del.headers)
@@ -532,6 +518,7 @@ module Vertx
       @resp = HttpServerResponse.new(@j_del.response)
     end
 
+    # @return [String] The Http version
     def version
       if !@vrsn
         @vrsn = @j_del.version.toString
@@ -581,7 +568,8 @@ module Vertx
       @headers
     end
 
-    # Returns a map of all form attributes which was found in the request. Be aware that this message should only get
+    # @return [MultiMap] Returns a map of all form attributes which was found in the request. Be aware that this
+    # message should only get
     # called after the endHandler was notified as the map will be filled on-the-fly.
     def form_attributes
       if !@attrs
@@ -628,11 +616,6 @@ module Vertx
   # It allows the developer to control the HTTP response that is sent back to the client for the corresponding HTTP
   # request. It contains methods that allow HTTP headers and trailers to be set, and for a body to be written out
   # to the response.
-  #
-  # It also allows a file to be streamed by the kernel directly from disk to the outgoing HTTP connection,
-  # bypassing user space altogether (where supported by the underlying operating system). This is a very efficient way of
-  # serving files from the server since buffers do not have to be read one by one from the file and written to the outgoing
-  # socket.
   #
   # @author {http://tfox.org Tim Fox}
   class HttpServerResponse
@@ -736,12 +719,12 @@ module Vertx
       self
     end
 
-    # Tell the kernel to stream a file directly from disk to the outgoing connection, bypassing userspace altogether
+    # Tell the kernel to stream a file directly from disk to the outgoing connection, bypassing user-space altogether
     # (where supported by the underlying operating system. This is a very efficient way to serve files.
     # @param [String] path. Path to file to send.
     # @param [String] not_found_file Path to file containing 404 resource in case resource can't be found
     # @return [HttpServerResponse] self So multiple operations can be chained.
-    def send_file(path, not_found_file)
+    def send_file(path, not_found_file = nil)
       if !not_found_file
         @j_del.sendFile(path)
       else
@@ -769,9 +752,9 @@ module Vertx
 
   end
 
-  # Encapsulates an HTML 5 Websocket.
+  # Represents a WebSocket.
   #
-  # Instances of this class are createde by an {HttpClient} instance when a client succeeds in a websocket handshake with a server.
+  # Instances of this class are created by an {HttpClient} instance when a client succeeds in a WebSocket handshake with a server.
   # Once an instance has been obtained it can be used to send or receive buffers of data from the connection,
   # a bit like a TCP socket.
   #
@@ -796,21 +779,21 @@ module Vertx
       })
     end
 
-    # Write data to the websocket as a binary frame
+    # Write data to the WebSocket as a binary frame
     # @param [Buffer] buffer. Data to write.
     def write_binary_frame(buffer)
       @j_del.writeBinaryFrame(buffer._to_java_buffer)
       self
     end
 
-    # Write data to the websocket as a text frame
+    # Write data to the WebSocket as a text frame
     # @param [String] str. String to write.
     def write_text_frame(str)
       @j_del.writeTextFrame(str)
       self
     end
 
-    # Close the websocket
+    # Close the WebSocket
     def close
       @j_del.close
     end
@@ -818,7 +801,7 @@ module Vertx
     # When a Websocket is created it automatically registers an event handler with the system, the ID of that
     # handler is given by {#binary_handler_id}.
     # Given this ID, a different event loop can send a binary frame to that event handler using the event bus. This
-    # allows you to write data to other websockets which are owned by different event loops.
+    # allows you to write data to other WebSockets which are owned by different event loops.
     def binary_handler_id
       @binary_handler_id
     end
@@ -826,12 +809,12 @@ module Vertx
     # When a Websocket is created it automatically registers an event handler with the system, the ID of that
     # handler is given by {#text_handler_id}.
     # Given this ID, a different event loop can send a text frame to that event handler using the event bus. This
-    # allows you to write data to other websockets which are owned by different event loops.
+    # allows you to write data to other WebSockets which are owned by different event loops.
     def text_handler_id
       @text_handler_id
     end
 
-    # Set a closed handler on the websocket.
+    # Set a closed handler on the WebSocket.
     # @param [Block] hndlr A block to be used as the handler
     def close_handler(&hndlr)
       @close_handler = hndlr;
@@ -840,8 +823,7 @@ module Vertx
   end
 
   # Instances of this class are created when a WebSocket is accepted on the server.
-  # It extends {WebSocket} and adds methods to reject the WebSocket and an
-  # attribute for the path.
+  # It extends {WebSocket} and adds methods to reject the WebSocket and to get path and headers
   class ServerWebSocket < WebSocket
 
     # @private
@@ -851,7 +833,7 @@ module Vertx
     end
 
     # Reject the WebSocket
-    # This can be called in the websocket connect handler on the server side and
+    # This can be called in the WebSocket connect handler on the server side and
     # will cause the WebSocket connection attempt to be rejected, returning a
     # 404 to the client.
     def reject
@@ -867,7 +849,7 @@ module Vertx
       @headers
     end
 
-    # The path the websocket connect was attempted at.
+    # The path the WebSocket connect was attempted at.
     def path
       @j_del.path
     end
@@ -876,7 +858,7 @@ module Vertx
   # This class allows you to do route requests based on the HTTP verb and the request URI, in a manner similar
   # to <a href="http://www.sinatrarb.com/">Sinatra</a> or <a href="http://expressjs.com/">Express</a>.
   #
-  # RouteMatcher also lets you extract paramaters from the request URI either a simple pattern or using
+  # RouteMatcher also lets you extract parameters from the request URI either a simple pattern or using
   # regular expressions for more complex matches. Any parameters extracted will be added to the requests parameters
   # which will be available to you in your request handler.
   #

@@ -95,7 +95,7 @@ module Vertx
   end
 
   # Represents a file on the file-system which can be read from, or written to asynchronously.
-  # Methods also exist to get a read stream or a write stream on the file. This allows the data to be pumped to and from
+  # The class also includes {ReadStream} and {WriteStream} - this allows the data to be pumped to and from
   # other streams, e.g. an {HttpClientRequest} instance, using the {Pump} class
   # @author {http://tfox.org Tim Fox}
   class AsyncFile

@@ -37,7 +37,7 @@ module Vertx
   # size records.
   #
   # Instances of this class can't currently be used for protocols where the text is encoded with something other than
-  # a 1-1 byte-char mapping. TODO extend this class to cope with arbitrary character encodings.
+  # a 1-1 byte-char mapping.
   #
   # @author {http://tfox.org Tim Fox}
   class RecordParser

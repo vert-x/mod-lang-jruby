@@ -58,7 +58,7 @@ module Vertx
       self
     end
 
-    # Set an execption handler on the stream.
+    # Set an exception handler on the stream.
     # @param [Block] hndlr. The exception handler
     def exception_handler(&hndlr)
       @j_del.exceptionHandler(hndlr)

@@ -20,8 +20,8 @@ module Vertx
   # @param main [String] The main of the verticle to deploy
   # @param config [Hash] JSON configuration for the verticle
   # @param instances [FixNum] Number of instances to deploy
-  # @param block [Block] Block will be executed when deploy has completed
-  # @return [String] Unique id of deployment
+  # @param block [Block] Block will be executed when deploy has completed - the first parameter passed to
+  # the block will be an exception or nil if no failure occurred, the second parameter will be the deployment id
   def Vertx.deploy_verticle(main, config = nil, instances = 1, &block)
     if config
       json_str = JSON.generate(config)
@@ -37,7 +37,8 @@ module Vertx
   # @param main [String] The main of the verticle to deploy
   # @param config [Hash] JSON configuration for the verticle
   # @param instances [FixNum] Number of instances to deploy
-  # @param block [Block] Block will be executed when deploy has completed
+  # @param block [Block] Block will be executed when deploy has completed - the first parameter passed to
+  # the block will be an exception or nil if no failure occurred, the second parameter will be the deployment id
   def Vertx.deploy_worker_verticle(main, config = nil, instances = 1, multi_threaded = false, &block)
     if config
       json_str = JSON.generate(config)
@@ -53,7 +54,8 @@ module Vertx
   # @param module_name [String] The name of the module to deploy
   # @param config [Hash] JSON configuration for the module
   # @param instances [FixNum] Number of instances to deploy
-  # @param block [Block] Block will be executed when deploy has completed
+  # @param block [Block] Block will be executed when deploy has completed - the first parameter passed to
+  # the block will be an exception or nil if no failure occurred, the second parameter will be the deployment id
   def Vertx.deploy_module(module_name, config = nil, instances = 1, &block)
     if config
       json_str = JSON.generate(config)
@@ -66,7 +68,9 @@ module Vertx
   end
 
   # Undeploy a verticle
-  # @param id [String] The unique id of the deployment
+  # @param id [String] The deployment id  - the undeploy happens asynchronously
+  # @param block [Block] Block will be executed when undeploy has completed, an exception will be passed to the block
+  # as the first parameter if undeploy failed
   def Vertx.undeploy_verticle(id, &block)
     if block
       block = ARWrappedHandler.new(block)
@@ -75,7 +79,9 @@ module Vertx
   end
 
   # Undeploy a module
-  # @param id [String] The unique id of the deployment
+  # @param id [String] The deployment id
+  # @param block [Block] Block will be executed when undeploy has completed, an exception will be passed to the block
+  # as the first parameter if undeploy failed
   def Vertx.undeploy_module(id, &block)
     if block
       block = ARWrappedHandler.new(block)

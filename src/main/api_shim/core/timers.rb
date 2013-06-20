@@ -54,6 +54,7 @@ module Vertx
     @@j_vertx.runOnContext(hndlr)
   end
 
+  # Get a reference to the current context
   def Vertx.current_context
     Context.new(@@j_vertx.currentContext())
   end

@@ -20,8 +20,6 @@ module Vertx
   # This class represents a distributed lightweight event bus which can encompass multiple vert.x instances.
   # It is very useful for otherwise isolated vert.x application instances to communicate with each other.
   #
-  # Messages sent over the event bus are JSON objects represented as Ruby Hash instances.
-  #
   # The event bus implements both publish / subscribe network and point to point messaging.
   #
   # For publish / subscribe, messages can be published to an address using one of the publish methods. An
@@ -48,7 +46,7 @@ module Vertx
   # Different event bus instances can be clustered together over a network, to give a single logical event bus.
   #
   # When receiving a message in a handler the received object is an instance of EventBus::Message - this contains
-  # the actual Hash of the message plus a reply method which can be used to reply to it.
+  # the actual message plus a reply method which can be used to reply to it.
   #
   # @author {http://tfox.org Tim Fox}
   class EventBus
@@ -59,7 +57,7 @@ module Vertx
 
     # Send a message on the event bus
     # @param message [Hash] The message to send
-    # @param reply_handler [Block] replyHandler An optional reply handler.
+    # @param reply_handler [Block] An optional reply handler.
     # It will be called when the reply from a receiver is received.
     def EventBus.send(address, message, &reply_handler)
       EventBus.send_or_pub(true, address, message, reply_handler)
@@ -91,7 +89,7 @@ module Vertx
     end
 
     # Register a handler.
-    # @param address [String] The address to register for. Any messages sent to that address will be
+    # @param address [String] The address to register for. Messages sent to that address will be
     # received by the handler. A single handler can be registered against many addresses.
     # @param local_only [Boolean] If true then handler won't be propagated across cluster
     # @param message_hndlr [Block] The handler

@@ -69,7 +69,7 @@ module Vertx
       @buffer.getByte(pos)
     end
 
-    # Get the fixnum represented by a sequence of bytes starting at position pos in the buffer.
+    # Get the FixNum represented by a sequence of bytes starting at position pos in the buffer.
     # @param pos [FixNum] the position in the buffer from where to retrieve the FixNum.
     # @param bytes [FixNum] the number of bytes to retrieve from position pos to create the FixNum. Valid values are 1, 2, 4 and 8.
     # @return [FixNum] the FixNum
@@ -88,7 +88,7 @@ module Vertx
       end
     end
 
-    # Get the float represented by a sequence of bytes starting at position pos in the buffer.
+    # Get the Float represented by a sequence of bytes starting at position pos in the buffer.
     # @param pos [Float] the position in the buffer from where to retrieve the Float.
     # @param bytes [Float] the number of bytes to retrieve from position pos to create the Float. Valid values are 4 and 8.
     # @return [Float] the Float
@@ -121,7 +121,8 @@ module Vertx
       Buffer.new(j_buff)
     end
 
-    # Appends a buffer to the end of this buffer. The buffer will expand as necessary to accomodate any bytes written.
+    # Appends another buffer to the end of this buffer. The buffer will expand as necessary to accomodate any bytes
+    # written.
     # @param buff [Buffer] the buffer to append.
     # @return [Buffer] a reference to self so multiple operations can be appended together.
     def append_buffer(buff)
@@ -129,7 +130,7 @@ module Vertx
       self
     end
 
-    # Appends a fixnum to the end of this buffer. The buffer will expand as necessary to accomodate any bytes written.
+    # Appends a FixNum to the end of this buffer. The buffer will expand as necessary to accomodate any bytes written.
     # @param num [FixNum] the fixnum to append.
     # @param bytes [FixNum] the number of bytes to write in the buffer to represent the fixnum. Valid values are 1, 2, 4 and 8.
     # @return [Buffer] a reference to self so multiple operations can be appended together.
@@ -149,7 +150,7 @@ module Vertx
       self
     end
 
-    # Appends a float to the end of this buffer. The buffer will expand as necessary to accomodate any bytes written.
+    # Appends a Float to the end of this buffer. The buffer will expand as necessary to accomodate any bytes written.
     # @param num [Float] the float to append.
     # @param bytes [FixNum] the number of bytes to write in the buffer to represent the float. Valid values are 4 and 8.
     # @return [Buffer] a reference to self so multiple operations can be appended together.
@@ -173,10 +174,10 @@ module Vertx
       self
     end
 
-    # Sets bytes in the buffer to a representation of a fixnum. The buffer will expand as necessary to accomodate any bytes written.
-    # @param pos [FixNum] - the position in the buffer from where to start writing the fixnum
-    # @param num [FixNum]  - the fixnum to write
-    # @param bytes [FixNum] - the number of bytes to write to represent the fixnum. Valid values are 1, 2, 4, and 8
+    # Sets bytes in the buffer to a representation of a FixNum. The buffer will expand as necessary to accomodate any bytes written.
+    # @param pos [FixNum] - the position in the buffer from where to start writing the FixNum
+    # @param num [FixNum]  - the FixNum to write
+    # @param bytes [FixNum] - the number of bytes to write to represent the FixNum. Valid values are 1, 2, 4, and 8
     # @return [Buffer] a reference to self so multiple operations can be appended together.
     def set_fixnum(pos, num, bytes)
       case bytes
@@ -194,10 +195,10 @@ module Vertx
       self
     end
 
-    # Sets bytes in the buffer to a representation of a float. The buffer will expand as necessary to accomodate any bytes written.
-    # @param pos [FixNum] - the position in the buffer from where to start writing the float
-    # @param num [Float]  - the float to write
-    # @param bytes [FixNum] - the number of bytes to write to represent the float. Valid values are 4 and 8
+    # Sets bytes in the buffer to a representation of a Float. The buffer will expand as necessary to accomodate any bytes written.
+    # @param pos [FixNum] - the position in the buffer from where to start writing the Float
+    # @param num [Float]  - the Float to write
+    # @param bytes [FixNum] - the number of bytes to write to represent the Float. Valid values are 4 and 8
     # @return [Buffer] a reference to self so multiple operations can be appended together.
     def set_float(pos, num, bytes)
       case bytes
