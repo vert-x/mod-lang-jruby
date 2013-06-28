@@ -85,6 +85,7 @@ task copyMod( type:Copy, dependsOn: 'classes' ) {
 // Package into build/libs/mod.zip
 task dist( type: Zip) {
   group = 'vert.x'
+  classifier = "mod"
   description = "Assembles a vert.x module"
   destinationDir = project.file('build/libs')
   archiveName = "${modname}-${version}" + ".zip"
