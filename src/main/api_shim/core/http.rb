@@ -627,6 +627,10 @@ module Vertx
       @j_del = j_del
     end
 
+    def status_code=(val)
+      @j_del.setStatusCode(val)
+    end
+
     # Get or set the status code
     def status_code(val = nil)
       if val
@@ -639,7 +643,7 @@ module Vertx
 
     # Set the status message
     def status_message=(val)
-      @j_del.statusMessage = val
+      @j_del.setStatusMessage(val)
     end
 
     # Get or set the status message

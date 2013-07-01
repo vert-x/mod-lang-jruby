@@ -166,7 +166,7 @@ module Vertx
 
     # @return [FixNum] Return the total number of bytes pumped by this pump.
     def bytes_pumped
-      @j_pump.getBytesPumped
+      @j_pump.bytesPumped
     end
   end
 end
