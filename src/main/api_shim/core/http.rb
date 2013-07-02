@@ -1107,7 +1107,7 @@ module Vertx
     end
 
     # Returns true if the map is empty
-    def is_empty
+    def empty?
       @j_map.isEmpty()
     end
 

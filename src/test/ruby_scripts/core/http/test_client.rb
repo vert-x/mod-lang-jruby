@@ -177,16 +177,16 @@ def test_form_file_upload
   @server.request_handler do |req|
     if req.uri == '/form'
       req.response.chunked = true
-      req.upload_handler do |event|
-        event.data_handler do |buffer|
+      req.upload_handler do |upload|
+        @tu.azzert(upload.filename == 'tmp-0.txt')
+        @tu.azzert(upload.content_type == 'image/gif')
+        upload.data_handler do |buffer|
           @tu.azzert(content == buffer.to_s())
         end
       end
       req.end_handler do
         attrs = req.form_attributes
-        @tu.azzert(attrs['name'] == 'file')
-        @tu.azzert(attrs['filename'] == 'tmp-0.txt')
-        @tu.azzert(attrs['Content-Type'] == 'image/gif')
+        @tu.azzert(attrs.empty?)
         req.response.end()
       end
     end
@@ -286,7 +286,7 @@ def http_method(ssl, method, chunked)
     @tu.azzert(headers.contains('header1'))
     @tu.azzert(headers.contains('header2'))
     @tu.azzert(headers.contains('header3'))
-    @tu.azzert(!headers.is_empty)
+    @tu.azzert(!headers.empty?)
 
     headers.remove('header3')
     @tu.azzert(!headers.contains('header3'))
@@ -351,7 +351,7 @@ def http_method(ssl, method, chunked)
           end
         end
         resp.headers.clear
-        @tu.azzert(resp.headers.is_empty)
+        @tu.azzert(resp.headers.empty?)
         @tu.test_complete
       end
     end
