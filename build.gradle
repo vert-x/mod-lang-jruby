@@ -27,10 +27,6 @@ defaultTasks = ['assemble']
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 
-// We don't produce a jar
-jar.enabled = false
-assert configurations.archives.artifacts.removeAll { it.file == jar.archivePath }
-
 configurations {
   provided
   testCompile.extendsFrom provided
