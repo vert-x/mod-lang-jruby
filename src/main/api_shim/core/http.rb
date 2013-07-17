@@ -568,6 +568,12 @@ module Vertx
       @headers
     end
 
+    # You must call this function with true before receiving the request body if you expect it to
+    # contain a multi-part form
+    def expect_multipart=(expect)
+      @j_del.expectMultiPart(expect)
+    end
+
     # @return [MultiMap] Returns a map of all form attributes which was found in the request. Be aware that this
     # message should only get
     # called after the endHandler was notified as the map will be filled on-the-fly.

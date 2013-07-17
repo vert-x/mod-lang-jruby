@@ -176,6 +176,7 @@ def test_form_file_upload
   content = "Vert.x rocks!"
   @server.request_handler do |req|
     if req.uri == '/form'
+      req.expect_multipart = true
       req.response.chunked = true
       req.upload_handler do |upload|
         @tu.azzert(upload.filename == 'tmp-0.txt')
@@ -223,6 +224,7 @@ def test_form_upload_attributes
   @server.request_handler do |req|
     if req.uri == '/form'
       req.response.chunked = true
+      req.expect_multipart = true
       req.upload_handler do |event|
         event.data_handler do |buffer|
           @tu.azzert(false)
