@@ -88,8 +88,23 @@ task dist( type: Zip) {
   from copyMod
 }
 
+task sourceJar(type: Jar) {
+  description = 'Builds a source jar artifact suitable for maven deployment.'
+  classifier = 'sources'
+  from sourceSets.main.java
+}
+
+task javadocJar(type: Jar) {
+  description = 'Builds a javadoc jar artifact suitable for maven deployment.'
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+javadocJar.dependsOn javadoc
+
+build.dependsOn sourceJar, javadocJar
+
 artifacts {
-  archives dist
+  archives sourceJar, javadocJar, dist
 }
 
 task cleanTestTmpModules(type: Delete) {
