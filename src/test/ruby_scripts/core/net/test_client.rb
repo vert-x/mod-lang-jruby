@@ -159,8 +159,7 @@ def test_echo_ssl
         if received.length == sends * size
           @tu.azzert(TestUtils::buffers_equal(sent, received))
 
-          @tu.test_complete
-
+          @client.close
         end
       }
 
@@ -178,6 +177,7 @@ def test_echo_ssl
 
       socket.close_handler {
         @tu.check_thread
+        @tu.test_complete
         #puts "closed\n"
       }
 
