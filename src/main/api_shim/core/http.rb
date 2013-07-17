@@ -572,6 +572,7 @@ module Vertx
     # contain a multi-part form
     def expect_multipart=(expect)
       @j_del.expectMultiPart(expect)
+      self
     end
 
     # @return [MultiMap] Returns a map of all form attributes which was found in the request. Be aware that this
