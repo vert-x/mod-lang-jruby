@@ -20,13 +20,24 @@ require 'socket'
 
 @tu = TestUtils.new
 @tu.check_thread
-@client = DnsClient.new(Addrinfo.tcp('127.0.0.1', 53))
 @logger = Vertx.logger
 
+def prepare_dns(server)
+  server.start()
+  @server = server
+  DnsClient.new(Addrinfo.tcp('127.0.0.1', server.getTransports()[0].getAcceptor().getLocalAddress().getPort()))
+end
 
 def test_resolve_a
-  # TODO: Add me
-  @tu.test_complete
+  ip = '10.0.0.1'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testResolveA(ip))
+  client.resolve_a('vertx.io') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result.length == 1
+    @tu.azzert ip == result[0].ip_address
+    @tu.test_complete
+  end
+
 end
 
 def test_resolve_aaaa
@@ -79,10 +90,14 @@ def test_lookup
   @tu.test_complete
 end
 
-def vertx_stop
-  @tu.unregister_all
-  @tu.app_stopped
-end
 
 @tu.register_all(self)
 @tu.app_ready
+
+def vertx_stop
+  if defined? @server
+    @server.stop()
+  end
+  @tu.unregister_all
+  @tu.app_stopped
+end

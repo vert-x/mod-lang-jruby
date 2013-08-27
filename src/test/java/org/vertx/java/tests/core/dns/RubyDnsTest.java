@@ -35,7 +35,7 @@ public class RubyDnsTest extends TestBase {
   public void test_resolve_a() {
     startTest(getMethodName());
   }
-
+  /*
   public void test_resolve_aaaa() {
     startTest(getMethodName());
   }
@@ -75,4 +75,5 @@ public class RubyDnsTest extends TestBase {
   public void test_lookup() {
     startTest(getMethodName());
   }
+  */
 }

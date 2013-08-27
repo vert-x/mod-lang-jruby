@@ -57,7 +57,11 @@ module Vertx
     # The handler will be notified once the operation completes.
     # @param [Block] hndlr A block to be used as the handler
     def resolve_a(name, &hndlr)
-      @j_dns.resolveA(name, ARWrappedHandler.new(hndlr))
+      @j_dns.resolveA(name, ARWrappedHandler.new(hndlr) { |j_list|
+        j_list.map { |item|
+          Addrinfo.ip(item.getHostAddress())
+        }
+      })
       self
     end
 
@@ -65,7 +69,11 @@ module Vertx
     # The handler will be notified once the operation completes.
     # @param [Block] hndlr A block to be used as the handler
     def resolve_aaaa(name, &hndlr)
-      @j_dns.resolveAAAA(name, ARWrappedHandler.new(hndlr))
+      @j_dns.resolveAAAA(name, ARWrappedHandler.new(hndlr) { |j_list|
+        j_list.map { |item|
+          Addrinfo.ip(item.getHostAddress())
+        }
+      })
       self
     end
 
@@ -82,10 +90,9 @@ module Vertx
     # @param [Block] hndlr A block to be used as the handler
     def resolve_mx(name, &hndlr)
       @j_dns.resolveMX(name, ARWrappedHandler.new(hndlr) { |j_list|
-        j_list.each{ |item|
-          puts MxRecord.new(item.priority(), item.name())
+        j_list.map { |item|
+          MxRecord.new(item.priority(), item.name())
         }
-        j_list
       })
       self
     end
@@ -111,10 +118,9 @@ module Vertx
     # @param [Block] hndlr A block to be used as the handler
     def resolve_srv(name, &hndlr)
       @j_dns.resolveSRV(name, ARWrappedHandler.new(hndlr) { |j_list|
-        j_list.each{ |item|
-          puts SrvRecord.new(item.priority(), item.weight(), item.port(), item.name(), item.protocol(), item.service(), item.target())
+        j_list.map { |item|
+          SrvRecord.new(item.priority(), item.weight(), item.port(), item.name(), item.protocol(), item.service(), item.target())
         }
-        j_list
       })
       self
     end
@@ -127,5 +133,6 @@ module Vertx
       @j_dns.reverseLookup(name, ARWrappedHandler.new(hndlr))
       self
     end
+
   end
 end
