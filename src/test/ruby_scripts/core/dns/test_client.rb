@@ -34,62 +34,153 @@ def test_resolve_a
   client.resolve_a('vertx.io') do |err, result|
     @tu.azzert err == nil
     @tu.azzert result.length == 1
-    @tu.azzert ip == result[0].ip_address
+    @tu.azzert ip == result[0]
     @tu.test_complete
   end
 
 end
 
 def test_resolve_aaaa
-  # TODO: Add me
- @tu.test_complete
+  ip = '::1'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testResolveAAAA(ip))
+  client.resolve_aaaa('vertx.io') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result.length == 1
+    @tu.azzert '0:0:0:0:0:0:0:1' == result[0]
+    @tu.test_complete
+  end
 end
 
 def test_resolve_mx
-  # TODO: Add me
-  @tu.test_complete
+  prio = 10
+  name = 'mail.vertx.io'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testResolveMX(prio, name))
+  client.resolve_mx('vertx.io')  do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result.length == 1
+    @tu.azzert prio == result[0].priority
+    @tu.azzert name == result[0].name
+    @tu.test_complete
+  end
 end
 
 def test_resolve_txt
-  # TODO: Add me
-  @tu.test_complete
+  txt = 'Vert.x rocks'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testResolveTXT(txt))
+  client.resolve_txt('vertx.io') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result.length == 1
+    @tu.azzert txt == result[0]
+    @tu.test_complete
+  end
 end
 
 def test_resolve_ns
-  # TODO: Add me
-  @tu.test_complete
+  ns = 'ns.vertx.io'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testResolveNS(ns))
+  client.resolve_ns('::1') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result.length == 1
+    @tu.azzert ns == result[0]
+    @tu.test_complete
+  end
 end
 
 def test_resolve_cname
-  # TODO: Add me
-  @tu.test_complete
+  cname = 'cname.vertx.io'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testResolveCNAME(cname))
+  client.resolve_cname('vertx.io') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result.length == 1
+    @tu.azzert cname == result[0]
+    @tu.test_complete
+  end
 end
 
 def test_resolve_ptr
-  # TODO: Add me
-  @tu.test_complete
+  ptr = 'ptr.vertx.io'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testResolvePTR(ptr))
+  client.resolve_ptr('10.0.0.1.in-addr.arpa') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert ptr == result
+    @tu.test_complete
+  end
 end
 
 def test_resolve_srv
-  # TODO: Add me
-  @tu.test_complete
+  priority = 10
+  weight = 1
+  port = 80
+  target = 'vertx.io'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testResolveSRV(priority, weight, port, target));
+  client.resolve_srv('vertx.io') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result.length == 1
+    @tu.azzert(priority == result[0].priority)
+    @tu.azzert(weight == result[0].weight)
+    @tu.azzert(port == result[0].port)
+    @tu.azzert(target == result[0].target)
+    @tu.test_complete
+  end
 end
 
 def test_lookup_6
-  # TODO: Add me
-  @tu.test_complete
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testLookup6())
+  client.lookup_6('vertx.io') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert '0:0:0:0:0:0:0:1' == result
+    @tu.test_complete
+  end
 end
 
 def test_lookup_4
-  # TODO: Add me
-  @tu.test_complete
+  ip = '10.0.0.1'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testLookup4(ip))
+  client.lookup_4('vertx.io') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert ip == result
+    @tu.test_complete
+  end
 end
 
 def test_lookup
-  # TODO: Add me
-  @tu.test_complete
+  ip = '10.0.0.1'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testLookup4(ip))
+  client.lookup('vertx.io') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert ip == result
+    @tu.test_complete
+  end
 end
 
+def test_lookup_non_existing
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testLookupNonExisting())
+  client.lookup('notexist.vertx.io') do |err, result|
+    @tu.azzert result == nil
+    @tu.azzert 3 == err.code().code()
+    @tu.test_complete
+  end
+end
+
+def test_reverse_lookup_ipv4
+  ptr = 'ptr.vertx.io'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testReverseLookup(ptr))
+  client.reverse_lookup('10.0.0.1') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result == ptr
+    @tu.test_complete
+    end
+end
+
+def test_reverse_lookup_ipv6
+  ptr = 'ptr.vertx.io'
+  client = prepare_dns(org.vertx.testtools.TestDnsServer.testReverseLookup(ptr))
+  client.reverse_lookup('::1') do |err, result|
+    @tu.azzert err == nil
+    @tu.azzert result == ptr
+    @tu.test_complete
+  end
+end
 
 @tu.register_all(self)
 @tu.app_ready

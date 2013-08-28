@@ -33,7 +33,7 @@ module Vertx
     # The handler will be notified once the lookup completes.
     # @param [Block] hndlr A block to be used as the handler
     def lookup(name, &hndlr)
-      @j_dns.lookup(name, ARWrappedHandler.new(hndlr) { |addr| Addrinfo.ip(addr.getHostAddress())})
+      @j_dns.lookup(name, ARWrappedHandler.new(hndlr) { |addr| addr.getHostAddress()})
       self
     end
 
@@ -41,7 +41,7 @@ module Vertx
     # The handler will be notified once the lookup completes.
     # @param [Block] hndlr A block to be used as the handler
     def lookup_4(name, &hndlr)
-      @j_dns.lookup4(name, ARWrappedHandler.new(hndlr) { |addr| Addrinfo.ip(addr.getHostAddress())})
+      @j_dns.lookup4(name, ARWrappedHandler.new(hndlr) { |addr| addr.getHostAddress()})
       self
     end
 
@@ -49,7 +49,7 @@ module Vertx
     # The handler will be notified once the lookup completes.
     # @param [Block] hndlr A block to be used as the handler
     def lookup_6(name, &hndlr)
-      @j_dns.lookup6(name, ARWrappedHandler.new(hndlr) { |addr| Addrinfo.ip(addr.getHostAddress())})
+      @j_dns.lookup6(name, ARWrappedHandler.new(hndlr) { |addr| addr.getHostAddress()})
       self
     end
 
@@ -59,7 +59,7 @@ module Vertx
     def resolve_a(name, &hndlr)
       @j_dns.resolveA(name, ARWrappedHandler.new(hndlr) { |j_list|
         j_list.map { |item|
-          Addrinfo.ip(item.getHostAddress())
+          item.getHostAddress()
         }
       })
       self
@@ -71,7 +71,7 @@ module Vertx
     def resolve_aaaa(name, &hndlr)
       @j_dns.resolveAAAA(name, ARWrappedHandler.new(hndlr) { |j_list|
         j_list.map { |item|
-          Addrinfo.ip(item.getHostAddress())
+          item.getHostAddress()
         }
       })
       self
@@ -113,6 +113,11 @@ module Vertx
       self
     end
 
+    def resolve_txt(name, &hndlr)
+      @j_dns.resolveTXT(name, ARWrappedHandler.new(hndlr))
+      self
+    end
+
     # Try to resolve all SRV records for the given name.
     # The handler will be notified once the operation completes.
     # @param [Block] hndlr A block to be used as the handler
@@ -130,7 +135,7 @@ module Vertx
     # The handler will be notified once the operation completes.
     # @param [Block] hndlr A block to be used as the handler
     def reverse_lookup(name, &hndlr)
-      @j_dns.reverseLookup(name, ARWrappedHandler.new(hndlr))
+      @j_dns.reverseLookup(name, ARWrappedHandler.new(hndlr) { |addr| addr.getHostName()})
       self
     end
 
