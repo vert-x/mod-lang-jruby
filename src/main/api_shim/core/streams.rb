@@ -14,21 +14,7 @@
 
 module Vertx
 
-  # A mixin module which represents a stream of data that can be written to.
-  #
-  # Any class that mixes in this module can be used by a {Pump} to pump data from a {ReadStream} to it.
-  #
-  # @author {http://tfox.org Tim Fox}
-  module WriteStream
-
-    # Write some data to the stream. The data is put on an internal write queue, and the write actually happens
-    # asynchronously. To avoid running out of memory by putting too much on the write queue,
-    # check the {#write_queue_full?} method before writing. This is done automatically if using a {Pump}.
-    # @param [Buffer]. The buffer to write.
-    def write(buff)
-      @j_del.write(buff._to_java_buffer)
-      self
-    end
+  module DrainSupport
 
     # Set the maximum size of the write queue. You will still be able to write to the stream even
     # if there is more data than this in the write queue. This is used as an indicator by classes such as
@@ -64,6 +50,25 @@ module Vertx
       @j_del.exceptionHandler(hndlr)
       self
     end
+  end
+
+  # A mixin module which represents a stream of data that can be written to.
+  #
+  # Any class that mixes in this module can be used by a {Pump} to pump data from a {ReadStream} to it.
+  #
+  # @author {http://tfox.org Tim Fox}
+  module WriteStream
+
+    include DrainSupport
+
+    # Write some data to the stream. The data is put on an internal write queue, and the write actually happens
+    # asynchronously. To avoid running out of memory by putting too much on the write queue,
+    # check the {#write_queue_full?} method before writing. This is done automatically if using a {Pump}.
+    # @param [Buffer]. The buffer to write.
+    def write(buff)
+      @j_del.write(buff._to_java_buffer)
+      self
+    end
 
     # @private
     def _to_write_stream
@@ -72,12 +77,8 @@ module Vertx
 
   end
 
-  # A mixin module which represents a stream of data that can be read from.
-  #
-  # Any class that mixes in this module can be used by a {Pump} to pump data from a {ReadStream} to it.
-  #
-  # @author {http://tfox.org Tim Fox}
-  module ReadStream
+
+  module ReadSupport
 
     # Set a data handler. As data is read, the handler will be called with the data.
     # @param [Block] hndlr. The data handler
@@ -106,6 +107,16 @@ module Vertx
       @j_del.exceptionHandler(hndlr)
       self
     end
+  end
+
+  # A mixin module which represents a stream of data that can be read from.
+  #
+  # Any class that mixes in this module can be used by a {Pump} to pump data from a {ReadStream} to it.
+  #
+  # @author {http://tfox.org Tim Fox}
+  module ReadStream
+
+    include ReadSupport
 
     # Set an end handler on the stream. Once the stream has ended, and there is no more data to be read, this handler will be called.
     # @param [Block] hndlr. The exception handler

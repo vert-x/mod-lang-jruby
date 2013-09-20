@@ -1,0 +1,239 @@
+# Copyright 2013 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+require 'core/buffer'
+require 'core/wrapped_handler'
+require 'core/network_support'
+require 'core/streams'
+require 'socket'
+
+module Vertx
+
+  #
+  # @author Norman Maurer
+  class DatagramSocket
+    include ReadSupport, DrainSupport, NetworkSupport
+
+    def initialize(ipv4=nil)
+      if ipv4 == nil
+        family = nil
+      elsif ipv4
+        family = org.vertx.java.core.datagram.InternetProtocolFamily::IPv4
+      else
+        family = org.vertx.java.core.datagram.InternetProtocolFamily::IPv6
+      end
+      @j_del = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createDatagramSocket(family)
+      @local_address = nil
+    end
+
+    # Write the given {@link org.vertx.java.core.buffer.Buffer} to the {@link java.net.InetSocketAddress}. The {@link org.vertx.java.core.Handler} will be notified once the
+    # write completes.
+    #
+    #
+    # @param packet    the {@link org.vertx.java.core.buffer.Buffer} to write
+    # @param host      the host address of the remote peer
+    # @param port      the host port of the remote peer
+    # @param handler   the {@link org.vertx.java.core.Handler} to notify once the write completes.
+    # @return self     itself for method chaining
+    def send(host, port, packet,  &hndlr)
+      @j_del.send(packet._to_java_buffer, host, port, ARWrappedHandler.new(hndlr) { |j_del| self })
+      self
+    end
+
+    #
+    # Write the given {@link String} to the {@link InetSocketAddress} using UTF8 encoding. The {@link Handler} will be notified once the
+    # write completes.
+    #
+    #
+    # @param str       the {@link String} to write
+    # @param host      the host address of the remote peer
+    # @param port      the host port of the remote peer
+    # @param handler   the {@link org.vertx.java.core.Handler} to notify once the write completes.
+    # @return self     itself for method chaining
+    def send_str(host, port, str, enc = 'UTF-8',  &hndlr)
+      @j_del.send(str, enc, host, port, ARWrappedHandler.new(hndlr) { |j_del| self })
+      self
+    end
+
+    #
+    # Get or set the {@link java.net.StandardSocketOptions#SO_BROADCAST} option.
+    #
+    def broadcast(val = nil)
+      if val
+        @j_del.setBroadcast(val)
+        self
+      else
+        @j_del.isBroadcast
+      end
+    end
+
+    #
+    # Get or set the {@link java.net.StandardSocketOptions#IP_MULTICAST_LOOP} option.
+    #
+    # @return {@code true} if and only if the loopback mode has been disabled
+    def multicast_loopback_mode(val = nil)
+      if val
+        @j_del.setMulticastLoopbackMode(val)
+        self
+      else
+        @j_del.isMulticastLoopbackMode
+      end
+    end
+
+    #
+    # Get or set  the {@link java.net.StandardSocketOptions#IP_MULTICAST_TTL} option.
+    #
+    def multicast_time_to_live(val = nil)
+      if val
+        @j_del.setMulticastTimeToLive(val)
+        self
+      else
+        @j_del.getMulticastTimeToLive
+      end
+    end
+
+    #
+    # Get or set the {@link java.net.StandardSocketOptions#IP_MULTICAST_IF} option.
+    #
+    def multicast_network_interface(val = nil)
+      if val
+        @j_del.setMulticastNetworkInterface(val)
+        self
+      else
+        @j_del.getMulticastNetworkInterface
+      end
+    end
+
+
+    #
+    # Close the {@link DatagramSocket} implementation asynchronous and notifies the handler once done.
+    #
+    def close(&hndlr)
+      if hndlr
+        @j_del.close(ARWrappedHandler.new(hndlr))
+      else
+        @j_del.close
+      end
+    end
+
+    def local_address
+      if !@local_address
+        addr = j_del.localAddress
+        if addr != null
+          @local_address = Addrinfo.tcp(@local_address.getAddress().getHostAddress(), @@local_address.getPort())
+        end
+      end
+      @local_address
+    end
+
+    #
+    # Joins a multicast group and so start listen for packets send to it. The {@link Handler} is notified once the operation completes.
+    #
+    #
+    # @param   multicastAddress  the address of the multicast group to join
+    # @param   handler           then handler to notify once the operation completes
+    # @param   networkInterface  the network interface on which to listen for packets.
+    # @param   source            the address of the source for which we will listen for mulicast packets
+    # @return  this              returns itself for method-chaining
+    def listen_multicast_group(multicast_address, source = nil, network_interface = nil,  &hndlr)
+      if network_interface != nil && source != nil
+        @j_del.listenMulticastGroup(multicast_address, network_interface, source, ARWrappedHandler.new(hndlr) { |j_del| self })
+      else
+        @j_del.listenMulticastGroup(multicast_address, ARWrappedHandler.new(hndlr) { |j_del| self })
+      end
+      self
+    end
+
+    #
+    # Leaves a multicast group and so stop listen for packets send to it on the given network interface.
+    # The {@link Handler} is notified once the operation completes.
+    #
+    #
+    # @param   multicastAddress  the address of the multicast group to join
+    # @param   networkInterface  the network interface on which to listen for packets.
+    # @param   source            the address of the source for which we will listen for mulicast packets
+    # @param   handler           then handler to notify once the operation completes
+    # @return  this              returns itself for method-chaining
+    def unlisten_multicast_group(multicast_address, source = nil, network_interface = nil, &hndlr)
+      if network_interface != nil && source != nil
+        @j_del.unlistenMulticastGroup(multicast_address, network_interface, source, ARWrappedHandler.new(hndlr) { |j_del| self })
+      else
+        @j_del.unlistenMulticastGroup(multicast_address, ARWrappedHandler.new(hndlr) { |j_del| self })
+      end
+      self
+    end
+
+    #
+    # Block the given sourceToBlock address for the given multicastAddress on the given network interface and notifies
+    # the {@link Handler} once the operation completes.
+    #
+    #
+    # @param   multicastAddress  the address for which you want to block the sourceToBlock
+    # @param   networkInterface  the network interface on which the blocking should accour.
+    # @param   sourceToBlock     the source address which should be blocked. You will not receive an multicast packets
+    #                          for it anymore.
+    # @param   handler           then handler to notify once the operation completes
+    # @return  this              returns itself for method-chaining
+    #
+    def block_multicast_group(multicast_address, source_to_block, network_interface = nil, &hndlr)
+      if network_interface != nil
+        @j_del.blockMulticastGroup(multicast_address, network_interface, source_to_block, ARWrappedHandler.new(hndlr) { |j_del| self })
+      else
+        @j_del.blockMulticastGroup(multicast_address, source_to_block, ARWrappedHandler.new(hndlr) { |j_del| self })
+      end
+      self
+    end
+
+    def listen(port, host = '0.0.0.0', &hndlr)
+      @j_del.listen(host, port, ARWrappedHandler.new(hndlr) { |j_del| self })
+      self
+    end
+
+
+    # Set a data handler. As data is read, the handler will be called with the data.
+    # @param [Block] hndlr. The data handler
+    def data_handler(&hndlr)
+      @j_del.dataHandler(Proc.new { |j_packet|
+        hndlr.call(DatagramPacket.new(j_packet))
+      })
+      self
+    end
+  end
+
+
+  #
+  # @author Norman Maurer
+  class DatagramPacket
+    def initialize(j_packet)
+      @j_packet = j_packet
+      @sender = nil
+      @data = nil
+    end
+
+    # Return the Addrinfo of the sender of the packet.
+    def sender
+      if !@sender
+        @sender = Addrinfo.tcp(@j_packet.sender().getAddress().getHostAddress(), @j_packet.sender().getPort())
+      end
+      @sender
+    end
+
+    def data
+      if !@data
+        @data = Buffer.new(@j_packet.data())
+      end
+      @data
+    end
+  end
+end

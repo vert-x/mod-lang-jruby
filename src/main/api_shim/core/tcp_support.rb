@@ -13,47 +13,14 @@
 # limitations under the License.
 
 module Vertx
+  require 'core/network_support'
 
   # Mixin module that provides all the common TCP params that can be set.
   #
   # @author {http://tfox.org Tim Fox}
   module TCPSupport
 
-    # Set the TCP send buffer size.
-    # @param [FixNum] val. The size in bytes.
-    # @return [] A reference to self so invocations can be chained
-    def send_buffer_size=(val)
-      @j_del.setSendBufferSize(val)
-      self
-    end
-
-    # Set or get send buffer size for fluent API
-    def send_buffer_size(val = nil)
-      if val
-        @j_del.setSendBufferSize(val)
-        self
-      else
-        @j_del.getSendBufferSize
-      end
-    end
-
-    # Set the TCP receive buffer size.
-    # @param [FixNum] val. The size in bytes.
-    # @return [] A reference to self so invocations can be chained
-    def receive_buffer_size=(val)
-      @j_del.setReceiveBufferSize(val)
-      self
-    end
-
-    # Set or get send buffer size for fluent API
-    def send_receive_size(val = nil)
-      if val
-        @j_del.setReceiveBufferSize(val)
-        self
-      else
-        @j_del.getReceiveBufferSize
-      end
-    end
+    include NetworkSupport
 
     # Set the TCP keep alive setting.
     # @param [Boolean] val. If true, then TCP keep alive will be enabled.
