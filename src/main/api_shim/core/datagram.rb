@@ -28,7 +28,7 @@ module Vertx
   # to the remote peer in a persistent way. Because of this you have to supply the address and port of the remote peer
   # when sending data.
   #
-  #  You can send data to ipv4 or ipv6 addresses, which also include multicast addresses.
+  # You can send data to ipv4 or ipv6 addresses, which also include multicast addresses.
   #
   # @author Norman Maurer
   class DatagramSocket
@@ -235,6 +235,7 @@ module Vertx
   end
 
 
+  # A received Datagram packet (UDP) which contains the data and information about the sender of the data itself.
   #
   # @author Norman Maurer
   class DatagramPacket
