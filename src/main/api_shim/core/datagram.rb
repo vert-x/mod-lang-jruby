@@ -20,6 +20,15 @@ require 'socket'
 
 module Vertx
 
+
+  #
+  # A Datagram socket which can be used to send data to remote Datagram servers and receive [DatagramPacket]s .
+  #
+  # Usually you use a Datragram Client to send UDP over the wire. UDP is connection-less which means you are not connected
+  # to the remote peer in a persistent way. Because of this you have to supply the address and port of the remote peer
+  # when sending data.
+  #
+  #  You can send data to ipv4 or ipv6 addresses, which also include multicast addresses.
   #
   # @author Norman Maurer
   class DatagramSocket
@@ -40,12 +49,11 @@ module Vertx
     # Write the given {@link org.vertx.java.core.buffer.Buffer} to the {@link java.net.InetSocketAddress}. The {@link org.vertx.java.core.Handler} will be notified once the
     # write completes.
     #
-    #
-    # @param packet    the {@link org.vertx.java.core.buffer.Buffer} to write
-    # @param host      the host address of the remote peer
-    # @param port      the host port of the remote peer
-    # @param handler   the {@link org.vertx.java.core.Handler} to notify once the write completes.
-    # @return self     itself for method chaining
+    # @param [String] host              the host address of the remote peer
+    # @param [FixNum] port              the host port of the remote peer
+    # @param [Buffer] packet            the buffer to write
+    # @param [Block] hndlr              the handler to notify once the write completes.
+    # @return [DatagramSocket] self     itself for method chaining
     def send(host, port, packet,  &hndlr)
       @j_del.send(packet._to_java_buffer, host, port, ARWrappedHandler.new(hndlr) { |j_del| self })
       self
@@ -56,11 +64,12 @@ module Vertx
     # write completes.
     #
     #
-    # @param str       the {@link String} to write
-    # @param host      the host address of the remote peer
-    # @param port      the host port of the remote peer
-    # @param handler   the {@link org.vertx.java.core.Handler} to notify once the write completes.
-    # @return self     itself for method chaining
+    # @param [String] host              the host address of the remote peer
+    # @param [FixNum] port              the host port of the remote peer
+    # @param [String] str               the data to send
+    # @param [String] enc               the charset to use to encode the data
+    # @param [Block] hndlr              the handler to notify once the write completes.
+    # @return [DatagramSocket] self     itself for method chaining
     def send_str(host, port, str, enc = 'UTF-8',  &hndlr)
       @j_del.send(str, enc, host, port, ARWrappedHandler.new(hndlr) { |j_del| self })
       self
@@ -81,7 +90,6 @@ module Vertx
     #
     # Get or set the {@link java.net.StandardSocketOptions#IP_MULTICAST_LOOP} option.
     #
-    # @return {@code true} if and only if the loopback mode has been disabled
     def multicast_loopback_mode(val = nil)
       if val
         @j_del.setMulticastLoopbackMode(val)
@@ -117,8 +125,9 @@ module Vertx
 
 
     #
-    # Close the {@link DatagramSocket} implementation asynchronous and notifies the handler once done.
+    # Close the socket asynchronous and notifies the handler once done.
     #
+    # @param [Block] hndlr the handler to notify once the opeation completes.
     def close(&hndlr)
       if hndlr
         @j_del.close(ARWrappedHandler.new(hndlr))
@@ -127,6 +136,10 @@ module Vertx
       end
     end
 
+    #
+    # Return the Addrinfo to which the local end of the socket is bound
+    #
+    # @return [Addrinfo] local_addr   the local address to which the socket is bound if it is bound at all.
     def local_address
       if !@local_address
         addr = j_del.localAddress
@@ -141,11 +154,11 @@ module Vertx
     # Joins a multicast group and so start listen for packets send to it. The {@link Handler} is notified once the operation completes.
     #
     #
-    # @param   multicastAddress  the address of the multicast group to join
-    # @param   handler           then handler to notify once the operation completes
-    # @param   networkInterface  the network interface on which to listen for packets.
-    # @param   source            the address of the source for which we will listen for mulicast packets
-    # @return  this              returns itself for method-chaining
+    # @param  [String]            multicast_address   the address of the multicast group to join
+    # @param  [String]            source              the address of the source for which we will listen for mulicast packets
+    # @param  [String]            network_interface   the network interface on which to listen for packets.
+    # @param  [Block]             hndlr               the handler to notify once the opeation completes.
+    # @return [DatagramSocket]    self                itself for method chaining
     def listen_multicast_group(multicast_address, source = nil, network_interface = nil,  &hndlr)
       if network_interface != nil && source != nil
         @j_del.listenMulticastGroup(multicast_address, network_interface, source, ARWrappedHandler.new(hndlr) { |j_del| self })
@@ -160,11 +173,11 @@ module Vertx
     # The {@link Handler} is notified once the operation completes.
     #
     #
-    # @param   multicastAddress  the address of the multicast group to join
-    # @param   networkInterface  the network interface on which to listen for packets.
-    # @param   source            the address of the source for which we will listen for mulicast packets
-    # @param   handler           then handler to notify once the operation completes
-    # @return  this              returns itself for method-chaining
+    # @param  [String]            multicast_address   the address of the multicast group to leave
+    # @param  [String]            source              the address of the source for which we will listen for mulicast packets
+    # @param  [String]            network_interface   the network interface on which to listen for packets.
+    # @param  [Block]             hndlr               the handler to notify once the opeation completes.
+    # @return [DatagramSocket]    self                itself for method chaining
     def unlisten_multicast_group(multicast_address, source = nil, network_interface = nil, &hndlr)
       if network_interface != nil && source != nil
         @j_del.unlistenMulticastGroup(multicast_address, network_interface, source, ARWrappedHandler.new(hndlr) { |j_del| self })
@@ -179,12 +192,12 @@ module Vertx
     # the {@link Handler} once the operation completes.
     #
     #
-    # @param   multicastAddress  the address for which you want to block the sourceToBlock
-    # @param   networkInterface  the network interface on which the blocking should accour.
-    # @param   sourceToBlock     the source address which should be blocked. You will not receive an multicast packets
-    #                          for it anymore.
-    # @param   handler           then handler to notify once the operation completes
-    # @return  this              returns itself for method-chaining
+    # @param  [String]          multicast_address   the address for which you want to block the sourceToBlock
+    # @param  [String]          source_to_block     the source address which should be blocked. You will not receive an multicast packets
+    #                                               for it anymore.
+    # @param  [String]          network_interface   the network interface on which the blocking should accour.
+    # @param  [Block]           hndlr               the handler to notify once the opeation completes.
+    # @return [DatagramSocket]  self                itself for method chaining
     #
     def block_multicast_group(multicast_address, source_to_block, network_interface = nil, &hndlr)
       if network_interface != nil
@@ -195,13 +208,23 @@ module Vertx
       self
     end
 
-    def listen(port, host = '0.0.0.0', &hndlr)
-      @j_del.listen(host, port, ARWrappedHandler.new(hndlr) { |j_del| self })
+    #
+    # Listen for incoming [DatagramPacket]s on the given address and port.
+    #
+    #
+    # @param  [FixNum]          port                the port on which to listen for incoming [DatagramPacket]s
+    # @param  [String]          address             the address on which to listen for incoming [DatagramPacket]s
+    # @param  [Block]           hndlr               the handler to notify once the opeation completes.
+    # @return [DatagramSocket]  self                itself for method chaining
+    #
+    def listen(port, address = '0.0.0.0', &hndlr)
+      @j_del.listen(address, port, ARWrappedHandler.new(hndlr) { |j_del| self })
       self
     end
 
 
     # Set a data handler. As data is read, the handler will be called with the data.
+    #
     # @param [Block] hndlr. The data handler
     def data_handler(&hndlr)
       @j_del.dataHandler(Proc.new { |j_packet|
@@ -221,7 +244,9 @@ module Vertx
       @data = nil
     end
 
-    # Return the Addrinfo of the sender of the packet.
+    # Return the address of the sender of this [DatagramPacket].
+    #
+    # @return [AddrInfo] addr   the address of the sender
     def sender
       if !@sender
         @sender = Addrinfo.tcp(@j_packet.sender().getAddress().getHostAddress(), @j_packet.sender().getPort())
@@ -229,6 +254,9 @@ module Vertx
       @sender
     end
 
+    # Return the data which was received
+    #
+    # @return [Buffer] data   the data which was received
     def data
       if !@data
         @data = Buffer.new(@j_packet.data())
