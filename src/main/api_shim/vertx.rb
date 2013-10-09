@@ -25,4 +25,5 @@ require 'core/streams'
 require 'core/shared_data'
 require 'core/event_bus'
 require 'core/sock_js'
+require 'core/dns'
 
