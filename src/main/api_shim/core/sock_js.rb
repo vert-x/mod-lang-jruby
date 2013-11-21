@@ -106,6 +106,16 @@ module Vertx
       @handler_id
     end
 
+    # Gets the remote address
+    def remote_address
+      @j_del.remoteAddress
+    end
+
+    # Gets the local address
+    def local_address
+      @j_del.localAddress
+    end
+
     # @private
     def _to_java_socket
       @j_del
