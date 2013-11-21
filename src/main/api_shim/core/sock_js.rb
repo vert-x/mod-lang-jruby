@@ -113,7 +113,7 @@ module Vertx
 
     # Gets the local address
     def local_address
-      @jdel.localAddress
+      @j_del.localAddress
     end
 
     # @private
