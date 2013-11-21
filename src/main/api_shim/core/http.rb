@@ -27,7 +27,7 @@ module Vertx
     include SSLSupport, ServerSSLSupport, TCPSupport, ServerTCPSupport
 
     # Letting the developer choose between compression? or compression while developing
-    alias_method :compression?, :compression
+    #alias_method :compression?, :compression
 
     # Create a new HttpServer.
     # using an optional hash to configure the HttpServer on instantiation.
@@ -74,6 +74,9 @@ module Vertx
       @j_del.isCompressionSupported
     end
 
+    # Letting the developer choose between compression? or compression while developing
+    alias_method :compression?, :compression
+
     # Instruct the server to listen for incoming connections.
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
@@ -108,9 +111,6 @@ module Vertx
 
     include SSLSupport, ClientSSLSupport, TCPSupport
 
-    # Letting the developer choose between compression? or compression while developing
-    alias_method :compression?, :compression
-
     # Create a new HttpClient
     def initialize(config = {})
       @j_del = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createHttpClient
@@ -130,6 +130,8 @@ module Vertx
       @j_del.getTryUseCompression
     end
 
+    # Letting the developer choose between compression? or compression while developing
+    alias_method :compression?, :compression
 
     # Set the exception handler.
     # @param [Block] hndlr A block to be used as the handler
