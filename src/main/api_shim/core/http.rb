@@ -605,6 +605,11 @@ module Vertx
       @j_del.remoteAddress
     end
 
+    # Get the local address
+    def local_address
+      @j_del.localAddress
+    end
+
     # Get the absolute URI
     def absolute_uri
       @j_del.absoluteURI
@@ -829,6 +834,16 @@ module Vertx
     # @param [Block] hndlr A block to be used as the handler
     def close_handler(&hndlr)
       @close_handler = hndlr;
+    end
+
+    # Gets the remote address
+    def remote_address
+      @j_del.remoteAddress
+    end
+
+    # Gets the local address
+    def local_address
+      @j_del.localAddress
     end
 
   end
