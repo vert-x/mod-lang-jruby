@@ -274,6 +274,8 @@ def http_method(ssl, method, chunked)
 
   @server.request_handler do |req|
     @tu.check_thread
+    puts "Local Address: #{req.local_address}"
+    puts "Remote Address: #{req.remote_address}"
     @tu.azzert(req.version == 'HTTP_1_1')
     @tu.azzert(req.uri == uri)
     @tu.azzert(req.method == method)
@@ -359,6 +361,8 @@ def http_method(ssl, method, chunked)
     end
 
     request.chunked = chunked;
+
+
     request.put_header('header1', 'vheader1')
     request.put_header('header2', 'vheader2')
     request.put_header('Content-Length', sent_buff.length()) if !chunked

@@ -36,6 +36,9 @@ def echo(binary)
 
     @tu.check_thread
 
+    puts "Local Address: #{ws.local_address}"
+
+
     ws.data_handler do |buff|
       @tu.check_thread
       ws.write(buff)
@@ -53,6 +56,8 @@ def echo(binary)
 
     @client.connect_web_socket("/someurl") do |ws|
       @tu.check_thread
+
+      puts "remote Address: #{ws.remote_address}"
 
       received = Buffer.create()
 
