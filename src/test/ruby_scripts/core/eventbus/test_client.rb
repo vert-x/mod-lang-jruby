@@ -27,6 +27,7 @@ def test_simple_send
   id = EventBus.register_handler(address) do |msg|
     @tu.azzert(msg.body['message'] == json['message'])
     @tu.azzert(EventBus.unregister_handler(id) == EventBus)
+    @tu.azzert(msg.address == address)
     @tu.test_complete
   end
 
