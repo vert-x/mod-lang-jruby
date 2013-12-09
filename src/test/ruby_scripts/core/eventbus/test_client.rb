@@ -27,6 +27,7 @@ def test_simple_send
   id = EventBus.register_handler(address) do |msg|
     @tu.azzert(msg.body['message'] == json['message'])
     @tu.azzert(EventBus.unregister_handler(id) == EventBus)
+    @tu.azzert(msg.address == address)
     @tu.test_complete
   end
 
@@ -43,6 +44,7 @@ def test_send_empty
   id = EventBus.register_handler(address) do |msg|
     @tu.azzert(msg.body.empty?)
     @tu.azzert(EventBus.unregister_handler(id) == EventBus)
+    @tu.azzert(msg.address == address)
     @tu.test_complete
   end
 
@@ -59,6 +61,7 @@ def test_reply
 
   id = EventBus.register_handler(address) do |msg|
     @tu.azzert(msg.body['message'] == json['message'])
+    @tu.azzert(msg.address == address)
     msg.reply(reply)
   end
 
@@ -128,6 +131,7 @@ def test_send_multiple_matching_handlers
   (1..num_handlers).each do
     id = EventBus.register_handler(address) do |msg|
       @tu.azzert(msg.body['message'] == json['message'])
+      #@tu.azzert(msg.address == address)
       @tu.azzert(EventBus.unregister_handler(id) == EventBus)
       count += 1
       @tu.test_complete if count == num_handlers
@@ -189,6 +193,7 @@ def test_reply_of_reply_of_reply
 
   id = EventBus.register_handler(address) do |msg|
     @tu.azzert("message" == msg.body)
+    @tu.azzert(msg.address == address)
     msg.reply("reply") do |reply|
       @tu.azzert("reply-of-reply" == reply.body)
       reply.reply("reply-of-reply-of-reply")

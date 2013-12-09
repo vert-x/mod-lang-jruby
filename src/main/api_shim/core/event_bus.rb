@@ -200,6 +200,12 @@ module Vertx
       end
     end
 
+    # Gets the address the message was sent to
+    # @return [String] The recipient's address
+    def address
+      @j_del.address
+    end
+
   end
 
 end
