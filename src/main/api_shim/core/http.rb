@@ -94,6 +94,18 @@ module Vertx
       end
     end
 
+    # Gets the max WebSocket Frame size in bytes
+    # @return [int] Max WebSocket frame size
+    def max_websocket_frame_size
+      @j_del.getMaxWebSocketFrameSize
+    end
+
+    # Sets the maximum WebSocket frame size in bytes. Default is 65536 bytes.
+    # @param [int] size
+    def max_websocket_frame_size=(size)
+      @j_del.setMaxWebSocketFrameSize(size)
+    end
+
     # @private
     def _to_java_server
       @j_del
@@ -222,6 +234,18 @@ module Vertx
       else
         @j_del.isVerifyHost
       end
+    end
+
+    # Gets the max WebSocket Frame size in bytes
+    # @return [int] Max WebSocket frame size
+    def max_websocket_frame_size
+      @j_del.getMaxWebSocketFrameSize
+    end
+
+    # Sets the maximum WebSocket frame size in bytes. Default is 65536 bytes.
+    # @param [int] size
+    def max_websocket_frame_size=(size)
+      @j_del.setMaxWebSocketFrameSize(size)
     end
 
     # Attempt to connect a WebSocket to the specified URI.

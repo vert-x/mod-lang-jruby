@@ -93,7 +93,19 @@ def test_write_from_connect_handler
     end
   end
 
+end
 
+def test_websocket_frame_size
+  @server.max_websocket_frame_size = 1024
+  @tu.azzert @server.max_websocket_frame_size == 1024
+
+  @client.max_websocket_frame_size = 1024
+  @tu.azzert @client.max_websocket_frame_size == 1024
+
+  # Restore default
+  @server.max_websocket_frame_size = 65536
+  @client.max_websocket_frame_size = 65536
+  @tu.test_complete
 end
 
 def test_close
