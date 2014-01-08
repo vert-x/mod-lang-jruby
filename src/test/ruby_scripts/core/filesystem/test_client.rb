@@ -149,6 +149,19 @@ def test_async_file_streams
   end
 end
 
+def test_chown
+  filename = FILEDIR + "/somefile.txt"
+  FileSystem::create_file(filename) do
+    @tu.check_thread
+
+    FileSystem::chown(filename, 'nobody', 'nobody') do |err|
+      @tu.check_thread
+      @tu.azzert(err == nil)
+      @tu.test_complete
+    end
+  end
+end
+
 def vertx_stop
   @tu.check_thread
   FileSystem::delete_recursive_sync(FILEDIR)

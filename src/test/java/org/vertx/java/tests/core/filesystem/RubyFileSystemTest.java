@@ -59,5 +59,14 @@ public class RubyFileSystemTest extends TestBase {
     startTest(getMethodName());
   }
 
+  public void test_chown() throws Exception {
+    startTest(getMethodName());
+  }
+
+//  public void test_chown_sync() throws Exception {
+//    startTest(getMethodName());
+//  }
+
+
 
 }
