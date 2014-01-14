@@ -115,7 +115,7 @@ end
 def test_async_file_streams
   filename = FILEDIR + "/somefile.txt"
   FileSystem::open(filename) do |err, file|
-
+    puts "opened file"
     #@tu.check_thread
     #@tu.azzert(err == nil)
     num_chunks = 100;
@@ -127,16 +127,21 @@ def test_async_file_streams
       tot_buff.append_buffer(buff)
       write_stream.write(buff)
     end
+    puts "closing file"
     file.close do
+      puts "closed file"
       FileSystem::open(filename) do |err, file|
+        puts "file opened err is #{err}"
         #@tu.check_thread
         #@tu.azzert(err == nil)
         read_stream = file
         tot_read = Buffer.create()
         read_stream.data_handler do |data|
+          puts "in data handler"
           tot_read.append_buffer(data)
         end
         read_stream.end_handler do
+          puts "in end handler"
           #@tu.azzert(TestUtils.buffers_equal(tot_buff, tot_read))
           #@tu.check_thread
           closing = true

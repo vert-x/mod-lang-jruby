@@ -133,6 +133,8 @@ test {
   classpath -= sourceSets.main.output
   classpath -= configurations.compile
 
+  include 'org/vertx/java/tests/core/filesystem/**'
+
   outputs.upToDateWhen { false }
 
   // Some vert.x properties
