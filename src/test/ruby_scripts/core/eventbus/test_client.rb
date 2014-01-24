@@ -73,7 +73,21 @@ def test_reply
     @tu.test_complete
   end
   @tu.azzert(bus == EventBus)
+end
 
+# Ensure API are handled correctly by the wrapper calling send with a timeout, the real test is under the hood.
+def test_reply_with_timeout
+  address = "some-address"
+
+  id = EventBus.register_handler(address) do |msg|
+    p msg
+  end
+  @tu.azzert id != nil
+  EventBus.send address, {'message' => 'test'}, 10 do |msg|
+    p msg
+  end
+
+  @tu.test_complete
 end
 
 def test_empty_reply
