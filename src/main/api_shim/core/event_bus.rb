@@ -216,11 +216,15 @@ module Vertx
     # Replying to a message this way is equivalent to sending a message to an address which is the same as the message id
     # of the original message.
     # @param [Hash] Message send as reply
-    def reply(reply, &reply_handler)
+    def reply(reply, timeout = nil, &reply_handler)
       raise "A reply message must be specified" if reply == nil
       reply = EventBus.convert_msg(reply)
       if reply_handler != nil
-        @j_del.reply(reply, InternalHandler.new(reply_handler))
+        if timeout != nil
+          @j_del.reply_with_timeout reply, timeout, InternalHandler.new(reply_handler)
+        else
+          @j_del.reply(reply, InternalHandler.new(reply_handler))
+        end
       else
         @j_del.reply(reply)
       end
@@ -230,6 +234,10 @@ module Vertx
     # @return [String] The recipient's address
     def address
       @j_del.address
+    end
+
+    def fail(failure_code, message)
+      @j_del.fail failure_code, message
     end
 
   end
