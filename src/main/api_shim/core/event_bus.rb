@@ -101,7 +101,7 @@ module Vertx
       if send
         if reply_handler != nil
           if timeout != nil
-            @@j_eventbus.send_with_timeout address, message, timeout, InternalHandler.new(reply_handler)
+            @@j_eventbus.send_with_timeout address, message, timeout, AsyncInternalHandler.new(reply_handler)
           else
             @@j_eventbus.send(address, message, InternalHandler.new(reply_handler))
           end
@@ -191,6 +191,7 @@ module Vertx
     end
   end
 
+
   # Represents a message received from the event bus
   # @author {http://tfox.org Tim Fox}
   class Message
@@ -221,7 +222,7 @@ module Vertx
       reply = EventBus.convert_msg(reply)
       if reply_handler != nil
         if timeout != nil
-          @j_del.reply_with_timeout reply, timeout, InternalHandler.new(reply_handler)
+          @j_del.reply_with_timeout reply, timeout, AsyncInternalHandler.new(reply_handler)
         else
           @j_del.reply(reply, InternalHandler.new(reply_handler))
         end
@@ -242,5 +243,32 @@ module Vertx
 
   end
 
-end
+  class ReplyError
 
+    TIMEOUT = 0
+    NO_HANDLERS = 1
+    RECIPIENT_FAILURE = 2
+
+    def initialize(exception)
+      @exception = exception
+    end
+    def type
+      @exception.failureType().toInt()
+    end
+  end
+
+
+  class AsyncInternalHandler
+    include org.vertx.java.core.AsyncResultHandler
+    def initialize(hndlr)
+      @hndlr = hndlr
+    end
+    def handle(result)
+      if result.failed?
+        @hndlr.call(ReplyError.new(result.cause))
+      else
+        @hndlr.call(Message.new(result.result))
+      end
+    end
+  end
+end
