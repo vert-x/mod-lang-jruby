@@ -55,7 +55,8 @@ def test_stats
   filename = FILEDIR + "/test-file.txt"
   FileSystem::create_file(filename) do
     @tu.check_thread
-    FileSystem::props(filename)do |err, stats|
+
+    FileSystem::props(filename) do |err, stats|
       @tu.check_thread
       @tu.azzert(err == nil)
       puts "creation time #{stats.creation_time}"
@@ -149,16 +150,15 @@ def test_async_file_streams
   end
 end
 
+#
 def test_chown
   filename = FILEDIR + "/somefile.txt"
-  FileSystem::create_file(filename) do
-    @tu.check_thread
 
-    FileSystem::chown(filename, 'nobody', 'nobody') do |err|
-      @tu.check_thread
-      @tu.azzert(err == nil)
-      @tu.test_complete
-    end
+  FileSystem::create_file_sync(filename)
+  FileSystem::chown(filename, 'nobody', 'nobody') do |err|
+    @tu.check_thread
+    puts err if err
+    @tu.azzert(err == nil)
   end
 end
 
