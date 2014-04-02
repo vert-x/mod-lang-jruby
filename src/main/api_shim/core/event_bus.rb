@@ -243,6 +243,9 @@ module Vertx
 
   end
 
+
+  # Error when the event bus use timeout and doesn't reply in time
+  # Copied from mod-lang-jython
   class ReplyError
 
     TIMEOUT = 0
@@ -257,7 +260,7 @@ module Vertx
     end
   end
 
-
+  # Copied from mod-lang-jython
   class AsyncInternalHandler
     include org.vertx.java.core.AsyncResultHandler
     def initialize(hndlr)
