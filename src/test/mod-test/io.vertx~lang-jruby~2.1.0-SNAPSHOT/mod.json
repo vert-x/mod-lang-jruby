@@ -1,0 +1,10 @@
+{
+  "system": true,
+  "resident": true,
+
+  "description":"Ruby language implementation module for Vert.x - uses JRuby as the Ruby engine",
+  "licenses": ["The Apache Software License Version 2.0"],
+  "author": "purplefox",
+  "keywords": ["ruby", "jruby", "scripting", "language"],
+  "homepage": "https://github.com/vert-x/mod-lang-jruby"
+}
