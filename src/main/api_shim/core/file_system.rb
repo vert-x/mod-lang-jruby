@@ -229,12 +229,28 @@ module Vertx
       self
     end
 
+
     # Synchronous version of {#FileSystem.chmod}
     def FileSystem.chmod_sync(path, perms, dir_perms = nil)
       @@j_fs.chmodSync(path, perms, dir_perms)
       self
     end
 
+    # Change the ownership of a file, asynchronously.
+    # @param [String] path Path of the file
+    # @param [String] user the user to set the ownership to
+    # @param [String] group the group to set the ownership to
+    def FileSystem.chown(path, user, group, &block)
+      @@j_fs.chown(path, user, group, ARWrappedHandler.new(block))
+      self
+    end
+
+    # Synchronous version of {#FileSystem.chown}
+    def FileSystem.chown_sync(path, user, group)
+      @@j_fs.chownSync(path, user, group)
+      self
+    end
+    
     # Get file properties for a file, asynchronously.
     # @param [String] path Path to file
     def FileSystem.props(path, &block)
