@@ -98,8 +98,6 @@ def test_patch_ssl
 end
 
 
-
-
 def test_get_chunked
   http_method(false, "GET", true)
 end
@@ -256,6 +254,34 @@ def test_form_upload_attributes
     req.write(buffer).end()
   end
 end
+
+
+def test_http_compression
+  @server.compression = true
+  @client.compression = true
+
+  @server.request_handler do |req|
+    if req.uri == '/compression'
+      req.response = 'HTTP Compression!'
+    end
+  end
+
+  @server.listen(8080) do |err, server|
+    @tu.azzert err == nil
+    @tu.azzert @server.compression? == true
+
+    @client.compression = true
+    @client.port = 8080
+    req = @client.get('/compression') do |resp|
+      resp.body_handler do |body|
+        @tu.azzert body.to_s == 'HTTP Compression!'
+      end
+    end
+  end
+  @tu.test_complete()
+
+end
+
 
 def http_method(ssl, method, chunked)
 

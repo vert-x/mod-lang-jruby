@@ -26,9 +26,16 @@ module Vertx
 
     include SSLSupport, ServerSSLSupport, TCPSupport, ServerTCPSupport
 
-    # Create a new HttpServer
-    def initialize
+    # Letting the developer choose between compression? or compression while developing
+    #alias_method :compression?, :compression
+
+    # Create a new HttpServer.
+    # using an optional hash to configure the HttpServer on instantiation.
+    # @param [Hash] config an Hash of configurations.
+    def initialize(config = {})
       @j_del = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createHttpServer
+      self.compression = config[:compression] if config.has_key?(:compression)
+      self
     end
 
     # Set the HTTP request handler for the server.
@@ -54,6 +61,22 @@ module Vertx
       self
     end
 
+    # Enables HTTP compression.
+    # exposes a = method to set or unset compression support.
+    # @param [Boolean] supported whether enable compression or not
+    def compression=(supported)
+      @j_del.setCompressionSupported(supported)
+    end
+
+    # Tests if compression is supported.
+    # @return [Boolean] true if compression is supported or false if it doesn't
+    def compression
+      @j_del.isCompressionSupported
+    end
+
+    # Letting the developer choose between compression? or compression while developing
+    alias_method :compression?, :compression
+
     # Instruct the server to listen for incoming connections.
     # @param [FixNum] port. The port to listen on.
     # @param [FixNum] host. The host name or ip address to listen on.
@@ -69,6 +92,18 @@ module Vertx
       else
         @j_del.close
       end
+    end
+
+    # Gets the max WebSocket Frame size in bytes
+    # @return [int] Max WebSocket frame size
+    def max_websocket_frame_size
+      @j_del.getMaxWebSocketFrameSize
+    end
+
+    # Sets the maximum WebSocket frame size in bytes. Default is 65536 bytes.
+    # @param [int] size
+    def max_websocket_frame_size=(size)
+      @j_del.setMaxWebSocketFrameSize(size)
     end
 
     # @private
@@ -89,9 +124,26 @@ module Vertx
     include SSLSupport, ClientSSLSupport, TCPSupport
 
     # Create a new HttpClient
-    def initialize
+    def initialize(config = {})
       @j_del = org.vertx.java.platform.impl.JRubyVerticleFactory.vertx.createHttpClient
+      self.compression = config[:try_compression] if config.has_key?(:try_compression)
     end
+
+    # Enables HTTP compression.
+    # exposes a = method to set or unset compression support.
+    # @param [Boolean] supported whether enable compression or not
+    def compression=(supported)
+      @j_del.setTryUseCompression(supported)
+    end
+
+    # Tests if client is trying to use HTTP compression or not
+    # @return [Boolean] true if Client is trying using HTTP compression, false if it doesn't
+    def compression
+      @j_del.getTryUseCompression
+    end
+
+    # Letting the developer choose between compression? or compression while developing
+    alias_method :compression?, :compression
 
     # Set the exception handler.
     # @param [Block] hndlr A block to be used as the handler
@@ -182,6 +234,18 @@ module Vertx
       else
         @j_del.isVerifyHost
       end
+    end
+
+    # Gets the max WebSocket Frame size in bytes
+    # @return [int] Max WebSocket frame size
+    def max_websocket_frame_size
+      @j_del.getMaxWebSocketFrameSize
+    end
+
+    # Sets the maximum WebSocket frame size in bytes. Default is 65536 bytes.
+    # @param [int] size
+    def max_websocket_frame_size=(size)
+      @j_del.setMaxWebSocketFrameSize(size)
     end
 
     # Attempt to connect a WebSocket to the specified URI.

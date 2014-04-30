@@ -54,4 +54,8 @@ public class RubyWebsocketTest extends TestBase {
     startTest(getMethodName());
   }
 
+  public void test_websocket_frame_size() {
+    startTest(getMethodName());
+  }
+
 }

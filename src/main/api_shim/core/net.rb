@@ -178,6 +178,18 @@ module Vertx
       })
     end
 
+    # Upgrade channel to use SSL/TLS. Be aware that for this to work SSL must be configured.
+    def ssl
+      raise 'An handler must be provided' unless block_given?
+      @j_del.ssl InternalHandler.new(Proc.new)
+      self
+    end
+
+    # Returns true if NetSocket is SSL/TSL Encrypted.
+    def ssl?
+      @j_del.isSsl
+    end
+
     # Write a String to the socket. The handler will be called when the string has actually been written to the wire.
     # @param [String] str. The string to write.
     # @param [String] enc. The encoding to use.

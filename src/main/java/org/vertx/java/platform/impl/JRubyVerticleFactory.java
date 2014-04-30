@@ -121,6 +121,12 @@ public class JRubyVerticleFactory implements VerticleFactory {
     }
   }
 
+  // This method synchronizes the callback into the JRuby code to make sure we don't have concurrent requires
+  // or loads occurring in the same JRuby container
+  public static synchronized void requireCallback(Runnable runnable) {
+    runnable.run();
+  }
+
   // This MUST be static or we will get a leak since JRuby maintains it and a non static will hold a reference
   // to this
   private static class NullWriter extends Writer {
@@ -152,26 +158,29 @@ public class JRubyVerticleFactory implements VerticleFactory {
     }
 
     public void start() {
-      try (InputStream is = cl.getResourceAsStream(scriptName)) {
-        if (is == null) {
-          throw new IllegalArgumentException("Cannot find verticle: " + scriptName);
+      synchronized (JRubyVerticleFactory.class) {
+        try (InputStream is = cl.getResourceAsStream(scriptName)) {
+          if (is == null) {
+            throw new IllegalArgumentException("Cannot find verticle: " + scriptName);
+          }
+          // Read the whole file into a string and wrap it in a module to provide a degree of isolation
+          // - note there is one JRuby runtime per
+          // verticle _type_ or module _type_ so any verticles/module instances of the same type
+          // will share a runtime and need to be wrapped so ivars, cvars etc don't collide
+          // We also require vertx_require which overrides the load and require methods to make them
+          // synchronized
+          modName = "Mod___VertxInternalVert__" + seq.incrementAndGet();
+          StringBuilder svert = new StringBuilder( "require 'core/vertx_require'\n").append("module ").append(modName).append(";extend self;");
+          BufferedReader br = new BufferedReader(new InputStreamReader(is));
+          for (String line = br.readLine(); line != null; line = br.readLine()) {
+            svert.append(line).append("\n");
+          }
+          br.close();
+          svert.append(";end;").append(modName);
+          wrappingModule = (RubyModule)scontainer.runScriptlet(new StringReader(svert.toString()), scriptName);
+        } catch (Exception e) {
+          throw new VertxException(e);
         }
-        // Read the whole file into a string and wrap it in a module to provide a degree of isolation
-        // - note there is one JRuby runtime per
-        // verticle _type_ or module _type_ so any verticles/module instances of the same type
-        // will share a runtime and need to be wrapped so ivars, cvars etc don't collide
-        //StringBuilder svert = new StringBuilder("Module.new do;extend self;");
-        modName = "Mod___VertxInternalVert__" + seq.incrementAndGet();
-        StringBuilder svert = new StringBuilder("module ").append(modName).append(";extend self;");
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        for (String line = br.readLine(); line != null; line = br.readLine()) {
-          svert.append(line).append("\n");
-        }
-        br.close();
-        svert.append(";end;").append(modName);
-        wrappingModule = (RubyModule)scontainer.runScriptlet(new StringReader(svert.toString()), scriptName);
-      } catch (Exception e) {
-        throw new VertxException(e);
       }
     }
 

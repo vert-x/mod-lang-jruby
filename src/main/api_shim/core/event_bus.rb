@@ -58,10 +58,32 @@ module Vertx
     # Send a message on the event bus
     # @param message [Hash] The message to send
     # @param reply_handler [Block] An optional reply handler.
+    # @param [Integer] timeout if specified sends the message
     # It will be called when the reply from a receiver is received.
-    def EventBus.send(address, message, &reply_handler)
-      EventBus.send_or_pub(true, address, message, reply_handler)
+    def EventBus.send(address, message, timeout = nil, &reply_handler)
+
+      if timeout.nil?
+        EventBus.send_or_pub(true, address, message, reply_handler)
+      else
+        EventBus.send_or_pub(true, address, message, reply_handler, timeout)
+      end
+
       self
+    end
+
+    # Sets a default timeout, in ms, for replies. If a messages is sent specify a reply handler
+    # but without specifying a timeout, then the reply handler is timed out, i.e. it is automatically unregistered
+    # if a message hasn't been received before timeout.
+    # The default value for default send timeout is -1, which means "never timeout".
+    # @param timeout
+    def EventBus.default_reply_timeout=(timeout)
+      @@j_eventbus.setDefaultReplyTimeout(timeout)
+      self
+    end
+
+    # Gets the default reply timeout value
+    def EventBus.default_reply_timeout
+      @@j_eventbus.getDefaultReplyTimeout
     end
 
     # Publish a message on the event bus
@@ -72,13 +94,17 @@ module Vertx
     end
 
     # @private
-    def EventBus.send_or_pub(send, address, message, reply_handler = nil)
+    def EventBus.send_or_pub(send, address, message, reply_handler = nil, timeout = nil)
       raise "An address must be specified" if !address
       raise "A message must be specified" if message == nil
       message = convert_msg(message)
       if send
         if reply_handler != nil
-          @@j_eventbus.send(address, message, InternalHandler.new(reply_handler))
+          if timeout != nil
+            @@j_eventbus.send_with_timeout address, message, timeout, AsyncInternalHandler.new(reply_handler)
+          else
+            @@j_eventbus.send(address, message, InternalHandler.new(reply_handler))
+          end
         else
           @@j_eventbus.send(address, message)
         end
@@ -165,6 +191,7 @@ module Vertx
     end
   end
 
+
   # Represents a message received from the event bus
   # @author {http://tfox.org Tim Fox}
   class Message
@@ -190,17 +217,61 @@ module Vertx
     # Replying to a message this way is equivalent to sending a message to an address which is the same as the message id
     # of the original message.
     # @param [Hash] Message send as reply
-    def reply(reply, &reply_handler)
+    def reply(reply, timeout = nil, &reply_handler)
       raise "A reply message must be specified" if reply == nil
       reply = EventBus.convert_msg(reply)
       if reply_handler != nil
-        @j_del.reply(reply, InternalHandler.new(reply_handler))
+        if timeout != nil
+          @j_del.reply_with_timeout reply, timeout, AsyncInternalHandler.new(reply_handler)
+        else
+          @j_del.reply(reply, InternalHandler.new(reply_handler))
+        end
       else
         @j_del.reply(reply)
       end
     end
 
+    # Gets the address the message was sent to
+    # @return [String] The recipient's address
+    def address
+      @j_del.address
+    end
+
+    def fail(failure_code, message)
+      @j_del.fail failure_code, message
+    end
+
   end
 
-end
 
+  # Error when the event bus use timeout and doesn't reply in time
+  # Copied from mod-lang-jython
+  class ReplyError
+
+    TIMEOUT = 0
+    NO_HANDLERS = 1
+    RECIPIENT_FAILURE = 2
+
+    def initialize(exception)
+      @exception = exception
+    end
+    def type
+      @exception.failureType().toInt()
+    end
+  end
+
+  # Copied from mod-lang-jython
+  class AsyncInternalHandler
+    include org.vertx.java.core.AsyncResultHandler
+    def initialize(hndlr)
+      @hndlr = hndlr
+    end
+    def handle(result)
+      if result.failed?
+        @hndlr.call(ReplyError.new(result.cause))
+      else
+        @hndlr.call(Message.new(result.result))
+      end
+    end
+  end
+end
