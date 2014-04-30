@@ -60,9 +60,9 @@ public class RubyDatagramTest extends TestBase {
     startTest(getMethodName());
   }
 
-  public void test_configure() {
+  /*public void test_configure() {
     startTest(getMethodName());
-  }
+  }*/
 
   public void test_multicast_join_leave() {
     startTest(getMethodName());
