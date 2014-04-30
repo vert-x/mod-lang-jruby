@@ -161,8 +161,8 @@ def test_broadcast
     @tu.azzert err != nil
     @tu.azzert false
   end
-  @peer1.broadcast(true)
-  @peer2.broadcast(true)
+  @peer1.broadcast = true
+  @peer2.broadcast = true
 
   @peer2.listen(1234) do |err, result|
     @tu.check_thread
@@ -189,33 +189,33 @@ end
 def test_configure
   @peer1 = DatagramSocket.new
 
-  @tu.azzert(!@peer1.broadcast)
-  @peer1.broadcast(true)
-  @tu.azzert(@peer1.broadcast)
+  @tu.azzert(!@peer1.broadcast?)
+  @peer1.broadcast = true
+  @tu.azzert(@peer1.broadcast?)
 
-  @tu.azzert(@peer1.multicast_loopback_mode)
-  @peer1.multicast_loopback_mode(false)
-  @tu.azzert(@peer1.multicast_loopback_mode)
+  @tu.azzert(@peer1.multicast_loopback_mode?)
+  @peer1.multicast_loopback_mode = false
+  @tu.azzert(!@peer1.multicast_loopback_mode?)
 
   @tu.azzert(@peer1.multicast_network_interface == nil)
   iface = java.net.NetworkInterface.getNetworkInterfaces().nextElement()
-  @peer1.multicast_network_interface(iface.getName())
+  @peer1.multicast_network_interface = iface.getName()
   @tu.azzert(@peer1.multicast_network_interface == iface.getName())
 
   @tu.azzert(@peer1.receive_buffer_size != 1024)
-  @peer1.receive_buffer_size(1024)
+  @peer1.receive_buffer_size = 1024
   @tu.azzert(@peer1.receive_buffer_size == 1024)
 
   @tu.azzert(@peer1.send_buffer_size != 1024)
-  @peer1.send_buffer_size(1024)
+  @peer1.send_buffer_size = 1024
   @tu.azzert(@peer1.send_buffer_size == 1024)
 
-  @tu.azzert(!@peer1.reuse_address)
-  @peer1.reuse_address(true)
-  @tu.azzert(@peer1.reuse_address)
+  @tu.azzert(!@peer1.reuse_address?)
+  @peer1.reuse_address = true
+  @tu.azzert(@peer1.reuse_address?)
 
   @tu.azzert(@peer1.multicast_time_to_live != 2)
-  @peer1.multicast_time_to_live(2)
+  @peer1.multicast_time_to_live = 2
   @tu.azzert(@peer1.multicast_time_to_live == 2)
 
   @tu.test_complete

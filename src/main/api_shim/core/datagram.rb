@@ -76,51 +76,63 @@ module Vertx
     end
 
     #
-    # Get or set the {@link java.net.StandardSocketOptions#SO_BROADCAST} option.
+    # set the {@link java.net.StandardSocketOptions#SO_BROADCAST} option.
     #
-    def broadcast(val = nil)
-      if val
-        @j_del.setBroadcast(val)
-        self
-      else
-        @j_del.isBroadcast
-      end
+    def broadcast=(val)
+      @j_del.setBroadcast(val)
+      self
     end
 
     #
-    # Get or set the {@link java.net.StandardSocketOptions#IP_MULTICAST_LOOP} option.
+    # set the {@link java.net.StandardSocketOptions#SO_BROADCAST} option.
     #
-    def multicast_loopback_mode(val = nil)
-      if val
-        @j_del.setMulticastLoopbackMode(val)
-        self
-      else
-        @j_del.isMulticastLoopbackMode
-      end
+    def broadcast?
+      @j_del.isBroadcast
     end
 
     #
-    # Get or set  the {@link java.net.StandardSocketOptions#IP_MULTICAST_TTL} option.
+    # Set the {@link java.net.StandardSocketOptions#IP_MULTICAST_LOOP} option.
     #
-    def multicast_time_to_live(val = nil)
-      if val
-        @j_del.setMulticastTimeToLive(val)
-        self
-      else
-        @j_del.getMulticastTimeToLive
-      end
+    def multicast_loopback_mode=(val)
+      @j_del.setMulticastLoopbackMode(val)
+       self
     end
 
     #
-    # Get or set the {@link java.net.StandardSocketOptions#IP_MULTICAST_IF} option.
+    # Set the {@link java.net.StandardSocketOptions#IP_MULTICAST_LOOP} option.
     #
-    def multicast_network_interface(val = nil)
-      if val
-        @j_del.setMulticastNetworkInterface(val)
-        self
-      else
-        @j_del.getMulticastNetworkInterface
-      end
+    def multicast_loopback_mode?
+      @j_del.isMulticastLoopbackMode
+    end
+
+    #
+    # Set  the {@link java.net.StandardSocketOptions#IP_MULTICAST_TTL} option.
+    #
+    def multicast_time_to_live=(val)
+      @j_del.setMulticastTimeToLive(val)
+      self
+    end
+
+    #
+    # Gets  the {@link java.net.StandardSocketOptions#IP_MULTICAST_TTL} option.
+    #
+    def multicast_time_to_live
+      @j_del.getMulticastTimeToLive
+    end
+
+    #
+    # Set the {@link java.net.StandardSocketOptions#IP_MULTICAST_IF} option.
+    #
+    def multicast_network_interface=(val)
+      @j_del.setMulticastNetworkInterface(val)
+      self
+    end
+
+    #
+    # Gets the {@link java.net.StandardSocketOptions#IP_MULTICAST_IF} option.
+    #
+    def multicast_network_interface
+      @j_del.getMulticastNetworkInterface
     end
 
 

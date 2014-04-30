@@ -27,32 +27,24 @@ module Vertx
       self
     end
 
-    # Set or get send buffer size for fluent API
-    def send_buffer_size(val = nil)
-      if val
-        @j_del.setSendBufferSize(val)
-        self
-      else
-        @j_del.getSendBufferSize
-      end
-    end
-
-
-    def receive_buffer_size=(val)
-      @j_del.setReceiveBufferSize(val)
-      self
+    # Get send buffer size for fluent API
+    def send_buffer_size
+      @j_del.getSendBufferSize
     end
 
     # Set the receive buffer size.
     # @param [FixNum] val. The size in bytes.
     # @return [] A reference to self so invocations can be chained
-    def receive_buffer_size(val = nil)
-      if val
-        @j_del.setReceiveBufferSize(val)
-        self
-      else
+    def receive_buffer_size=(val)
+      @j_del.setReceiveBufferSize(val)
+      self
+    end
+
+    #
+    # Gets the receive buffer size.
+    #
+    def receive_buffer_size
         @j_del.getReceiveBufferSize
-      end
     end
 
 
@@ -64,14 +56,9 @@ module Vertx
       self
     end
 
-    # Set or get TCP reuse address for fluent API
-    def reuse_address(val = nil)
-      if val
-        @j_del.setReuseAddress(val)
-        self
-      else
-        @j_del.isReuseAddress
-      end
+    # Get TCP reuse address for fluent API
+    def reuse_address?
+      @j_del.isReuseAddress
     end
 
     # Set the traffic class setting.
@@ -82,14 +69,9 @@ module Vertx
       self
     end
 
-    # Set or get traffic class for fluent API
-    def traffic_class(val = nil)
-      if val
-        @j_del.setTrafficClass(val)
-        self
-      else
+    # Get traffic class for fluent API
+    def traffic_class
         @j_del.getTrafficClass
-      end
     end
   end
 end
