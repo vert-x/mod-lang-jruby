@@ -799,11 +799,19 @@ module Vertx
     # @param [String] path. Path to file to send.
     # @param [String] not_found_file Path to file containing 404 resource in case resource can't be found
     # @return [HttpServerResponse] self So multiple operations can be chained.
-    def send_file(path, not_found_file = nil)
-      if !not_found_file
-        @j_del.sendFile(path)
+    def send_file(path, not_found_file = nil, &block)
+      if not_found_file.nil?
+        if block_given?
+          @j_del.sendFile(path, ARWrappedHandler.new(block))
+        else
+          @j_del.sendFile(path)
+        end
       else
-        @j_del.sendFile(path, not_found_file)
+        if block_given?
+          @j_del.sendFile(path, not_found_file, ARWrappendHandler.new(block))
+        else
+          @j_del.sendFile(path, not_found_file)
+        end
       end
       self
     end
