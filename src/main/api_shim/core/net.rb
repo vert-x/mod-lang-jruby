@@ -208,8 +208,12 @@ module Vertx
     #  Tell the kernel to stream a file directly from disk to the outgoing connection, bypassing userspace altogether
     # (where supported by the underlying operating system. This is a very efficient way to stream files.
     # @param [String] file_path. Path to file to send.
-    def send_file(file_path)
-      @j_del.sendFile(file_path)
+    def send_file(file_path, &block)
+      if block.given?
+        @j_del.sendFile(file_path, ARWrappedHandler.new(block))
+      else
+        @j_del.sendFile(file_path)
+      end
       self
     end
 
