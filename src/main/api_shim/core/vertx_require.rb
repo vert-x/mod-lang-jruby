@@ -7,17 +7,17 @@ module Kernel
   alias_method :original_require, :require
   alias_method :original_load, :load
 
-  def require name
+  def require(*args)
     org.vertx.java.platform.impl.JRubyVerticleFactory.requireCallback do
       #puts "in require callback"
-      original_require name
+      original_require(*args)
     end
   end
 
-  def load name
+  def load(*args)
     org.vertx.java.platform.impl.JRubyVerticleFactory.requireCallback do
       #puts "in require callback"
-      original_load name
+      original_load(*args)
     end
   end
 
