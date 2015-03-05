@@ -227,13 +227,13 @@ module Vertx
     end
 
     # Get or set verify host
-    def verify_host(val = nil)
-      if val
-        @j_del.setVerifyHost(val)
-        self
-      else
-        @j_del.isVerifyHost
-      end
+    def verify_host
+      @j_del.isVerifyHost
+    end
+
+    def verify_host(val)
+      @j_del.setVerifyHost(val)
+      self
     end
 
     # Gets the max WebSocket Frame size in bytes
