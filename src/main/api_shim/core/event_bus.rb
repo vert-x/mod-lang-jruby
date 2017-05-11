@@ -14,6 +14,7 @@
 
 require 'rubygems'
 require 'json'
+require 'core/wrapped_handler'
 
 module Vertx
 
@@ -117,22 +118,40 @@ module Vertx
     # Register a handler.
     # @param address [String] The address to register for. Messages sent to that address will be
     # received by the handler. A single handler can be registered against many addresses.
-    # @param local_only [Boolean] If true then handler won't be propagated across cluster
     # @param message_hndlr [Block] The handler
     # @return [FixNum] id of the handler which can be used in {EventBus.unregister_handler}
-    def EventBus.register_handler(address, local_only = false, &message_hndlr)
+    def EventBus.register_handler(address, &message_hndlr)
       raise "An address must be specified" if !address
       raise "A message handler must be specified" if !message_hndlr
       internal = InternalHandler.new(message_hndlr)
-      if local_only
-        @@j_eventbus.registerLocalHandler(address, internal)
-      else
-        @@j_eventbus.registerHandler(address, internal)
-      end
+      
+      @@j_eventbus.registerLocalHandler(address, internal)
+      
       id = java.util.UUID.randomUUID.toString
       @@handler_map[id] = [address, internal]
       id
     end
+
+    # Register a handler in a cluster environment.
+    # @param address [String] The address to register for. Messages sent to that address will be
+    # received by the handler. A single handler can be registered against many addresses.
+    # @param message_hndlr [Proc] The handler
+    # @param result_hndlr  [Block] The callback handler
+    # @return [FixNum] id of the handler which can be used in {EventBus.unregister_handler}
+    def EventBus.register_handler_cluster(address, message_hndlr, &result_hndlr)
+      raise "An address must be specified" if !address
+      raise "A message handler must be specified" if !message_hndlr
+      raise "A callback handler must be specified" if !result_hndlr
+
+      internal = InternalHandler.new(message_hndlr)
+      async_handler =  ARWrappedHandler.new(result_hndlr)
+
+      @@j_eventbus.registerHandler(address, internal, async_handler)
+      id = java.util.UUID.randomUUID.toString
+      @@handler_map[id] = [address, internal]
+      id
+    end
+
 
     # Registers a handler against a uniquely generated address, the address is returned as the id
     # received by the handler. A single handler can be registered against many addresses.
